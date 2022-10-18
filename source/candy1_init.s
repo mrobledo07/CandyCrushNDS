@@ -44,10 +44,60 @@
 @;		R1 = número de mapa de configuración
 	.global inicializa_matriz
 inicializa_matriz:
-		push {lr}		@;guardar registros utilizados
+		push {r1-r9, lr}		@;guardar registros utilizados
 		
+		ldrb r4, [r1]		@; carga el numero de mapa de configuracion en r4
+		ldrb r5, =mapas		@; carga la direccion de la variable global mapas 
+		mul r6, #COLUMNS, #ROWS
+		mul r6, r4			@; r6 = columns*rows*(numero de mapa de configuracion)
+		ldrb r7, [r5, r6]	@; cargamos en r7 la posicion inicial del mapa de configuracion
 		
-		pop {pc}			@;recuperar registros y volver
+		mov r4, r0			@; movemos la direccion de la matriz base a r4 para trabajar con ella
+		mov r1, #0			@; r1 es indice de fila
+		mov r8, #0 			@; r8 es indice de movimiento de posiciones
+		
+		.L_for1:
+			mov r2, #0			@; r2 es indice de columna
+		.L_for2:
+			ldrb r7, [r5, r6] 	@; en r7 se cargara en cada bucle el elemento variable del mapa de configuracion
+			strb r7, [r4, r8]
+			mov r9, r7			@; r9 es el elemento variable del mapa de configuracion
+			and r7, #0x07		@; filtramos los 3 bits bajos
+			cmp r7, #0x00
+			bne .L_fiif
+			
+			.L_if:
+				mov r0, #7			@; el rango del numero aleatorio será entre 0 y 6
+				bl mod_random
+				cmp r0, #0
+				addeq r0, #1		@; si el numero aleatorio generado es 0, sumamos 1 (el rango debe estar entre 1 y 6)
+				add r0, r9			@; sumamos el numero aleatorio generado a el elemento del mapa de configuracion
+				strb r0, [r4, r8]	@; guardamos el nuevo numero en la posicion correspondiente de la matriz
+				mov r0, r4
+				mov r3, #2			@; orientacion = oeste
+				bl cuenta_repeticiones
+				cmp r0, #3			
+				beq .L_if
+				mov r0, r4
+				mov r3, #3			@; orientacion = norte
+				bl cuenta_repeticiones
+				cmp r0, #3
+				beq .Lif
+			
+			.L_fiif:
+			
+			add r6, #1			@; r6 es el indice de desplazamiento para el mapa de configuracion, augmenta en 1
+			add r8, #1			@; el indice de desplazamiento de la matriz augmenta en 1
+			add r2, #1			@; el indice para el bucle que recorre las columnas augmenta en 1
+			cmp r2, #COLUMNS
+			blo .L_for2
+			
+			add r1, #1			@; el indice para el bucle de las filas augmenta en 1 
+			cmp r1, #ROWS
+			blo .L_for1
+			
+		
+		pop {r1-r9, pc}				@;recuperar registros y volver
 
 
 
