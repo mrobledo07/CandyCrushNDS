@@ -46,13 +46,11 @@
 inicializa_matriz:
 		push {r1-r9, lr}		@;guardar registros utilizados
 		
-		mov r4, r1			@; carga el numero de mapa de configuracion en r4
 		ldr r5, =mapas		@; carga la direccion de la variable global mapas 
-		mov r1, #COLUMNS
+		mov r4, #COLUMNS
 		mov r8, #ROWS
 		mul r6, r1, r8
 		mul r6, r4			@; r6 = columns*rows*(numero de mapa de configuracion)
-		ldrb r7, [r5, r6]	@; cargamos en r7 la posicion inicial del mapa de configuracion
 		
 		mov r4, r0			@; movemos la direccion de la matriz base a r4 para trabajar con ella
 		mov r1, #0			@; r1 es indice de fila
@@ -247,7 +245,7 @@ recombina_elementos:
 				mul r0, r7, r8		@; cargamos en r0 el rango para generar un numero aleatorio
 				bl mod_random
 				mov r7, r0			@; posicion aleatoria de mat_recomb1 en r7
-				ldrb r8, [r5, r0]	@; cargamos el valor de una posicion aleatoria de mat_recomb1 en r8
+				ldrb r8, [r5, r7]	@; cargamos el valor de una posicion aleatoria de mat_recomb1 en r8
 				cmp r8, #0			@; si el valor que hemos cargado es 0, repetimos, hasta que no sea 0
 				beq .Lcodigo_elemento
 				
