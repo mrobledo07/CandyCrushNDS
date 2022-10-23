@@ -48,7 +48,9 @@ inicializa_matriz:
 		
 		ldrb r4, [r1]		@; carga el numero de mapa de configuracion en r4
 		ldrb r5, =mapas		@; carga la direccion de la variable global mapas 
-		mul r6, #COLUMNS, #ROWS
+		mov r1, #COLUMNS
+		mov r8, #ROWS
+		mul r6, r1, r8
 		mul r6, r4			@; r6 = columns*rows*(numero de mapa de configuracion)
 		ldrb r7, [r5, r6]	@; cargamos en r7 la posicion inicial del mapa de configuracion
 		
@@ -77,7 +79,7 @@ inicializa_matriz:
 				mov r3, #2			@; orientacion = oeste
 				bl cuenta_repeticiones
 				cmp r0, #3			
-				beq .L_if
+				beq .Lif
 				mov r0, r4
 				mov r3, #3			@; orientacion = norte
 				bl cuenta_repeticiones
@@ -129,9 +131,9 @@ recombina_elementos:
 		mov r1, #0				@; r1 es indice de filas
 		mov r3, #0				@; r3 es indice de desplazamiento
 		
-		.LFor1:
+		.LFor3:
 			mov r2, #0			@; r2 es indice de columnas
-		.LFor2:
+		.LFor4:
 			ldrb r7, [r4, r3]
 			
 			mov r9, r7, lsr #3	@; bits 4 i 3 (2 bits altos) en r9
@@ -157,7 +159,7 @@ recombina_elementos:
 				
 				.Lbloque_hueco:
 					cmp r9, #2		@; si los 2 bits altos son 10, no será ni bloque ni hueco, no asignamos 0 a matrecomb1
-					beq copiar_elementosbasicos
+					beq .Lcopiar_elementosbasicos
 				
 				.Lasignacion_ceros:
 					mov r8, #0
@@ -212,21 +214,21 @@ recombina_elementos:
 				add r3, #1
 				add r2, #1
 				cmp r2, #COLUMNS
-				blo .LFor2
+				blo .LFor4
 				add r1, #1
 				cmp r1, #ROWS
-				blo .LFor1
+				blo .LFor3
 				
 				
 		@; segunda parte
 		
 		mov r1, #0		@; indice de filas
 		mov r10, #0		@; indice de desplazamiento
-		mul r0, #COLUMNS, #ROWS	@; cargamos en r0 el rango para generar un numero aleatorio
 		
-		.LFor3:
+		
+		.LFor5:
 			mov r2, #0	@; indice de columnas
-		.LFor4:
+		.LFor6:
 			ldrb r7, [r4, r10]		@; cargamos en r7 el valor contenido en la posicion "i" de la matriz
 			and r7, #0x07
 			cmp r7, #0
@@ -240,7 +242,10 @@ recombina_elementos:
 				strb r9, [r6, r10]	@; restituimos el valor de la posicion actual de mat_recomb2
 			
 			.Lcodigo_elemento:
-				bl mod_random()
+				mov r7, #COLUMNS
+				mov r8, #ROWS
+				mul r0, r7, r8		@; cargamos en r0 el rango para generar un numero aleatorio
+				bl mod_random
 				mov r7, r0			@; posicion aleatoria de mat_recomb1 en r7
 				ldrb r8, [r5, r0]	@; cargamos el valor de una posicion aleatoria de mat_recomb1 en r8
 				cmp r8, #0			@; si el valor que hemos cargado es 0, repetimos, hasta que no sea 0
@@ -273,10 +278,10 @@ recombina_elementos:
 			add r10, #1
 			add r2, #1
 			cmp r2, #COLUMNS
-			blo .LFor4
+			blo .LFor6
 			add r1, #1
 			cmp r1, #ROWS
-			blo .LFor3
+			blo .LFor5
 			
 	
 		pop {r1-r10,pc}
