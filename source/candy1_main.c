@@ -57,7 +57,7 @@ int main(void)
 	do							// bucle principal de pruebas
 	{
 		inicializa_matriz(matrix, level);
-		escribe_matriz_debug(matrix);
+		escribe_matriz(matrix);
 		retardo(5);
 		printf("\x1b[39m\x1b[3;8H (pulse A o B)");
 		do

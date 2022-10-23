@@ -46,8 +46,8 @@
 inicializa_matriz:
 		push {r1-r9, lr}		@;guardar registros utilizados
 		
-		ldrb r4, [r1]		@; carga el numero de mapa de configuracion en r4
-		ldrb r5, =mapas		@; carga la direccion de la variable global mapas 
+		mov r4, r1			@; carga el numero de mapa de configuracion en r4
+		ldr r5, =mapas		@; carga la direccion de la variable global mapas 
 		mov r1, #COLUMNS
 		mov r8, #ROWS
 		mul r6, r1, r8
