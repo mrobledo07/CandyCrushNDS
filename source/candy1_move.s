@@ -41,6 +41,34 @@
 cuenta_repeticiones:
 		push {lr}
 		
+		mov r4, #ROWS		@;files matriu
+		mov r5, #COLUMNS	@;columnes matriu
+		
+		mla r6, r1, r5, r2  @;ens col·loquem a la posicio de la matriu amb l'operacio: (f * #COLUMNS + c)
+		add r6, r6, r0      @;i obtenim el valor de la posicio de memoria equivalent
+		ldrb r7, [r6]
+		
+		and r8, r7, #0x07  	@;usem una mascara per als 3 bits de menor pes
+		
+		mov r9, #1 			@;establim el numero de repeticions a 1 (tal com indica el manual)
+		
+		@;r3 conté la direccio que volem seguir, ara comprovem de quina de les 4 possibles es tracta
+		cmp r3, #0 			@; est
+		beq .Lest
+		cmp r3, #1 			@; sud
+		beq .Lsud
+		cmp r3, #2 			@; oest
+		beq .Loest
+		cmp r3, #3 			@; nord
+		beq .Lnord
+		
+		.Lest:
+		
+		.Lsud:
+		
+		.Loest:
+		
+		.Lnord:
 		
 		pop {pc}
 

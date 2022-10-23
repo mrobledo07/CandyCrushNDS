@@ -17,7 +17,6 @@
 #include <time.h>
 #include <candy1_incl.h>
 
-
 /* variables globales */
 char matrix[ROWS][COLUMNS];		// matriz global de juego
 int seed32;						// semilla de números aleatorios
@@ -48,6 +47,7 @@ void actualizar_contadores(int code)
 /* Programa principal: control general del juego */
 int main(void)
 {
+
 	int lapse = 0;				// contador de tiempo sin actividad del usuario
 	int change = 0;				// =1 indica que ha habido cambios en la matriz
 	int falling = 0;			// =1 indica que los elementos estan bajando
