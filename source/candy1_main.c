@@ -53,27 +53,36 @@ int main(void)
 	printf("candyNDS (prueba tarea 1A)\n");
 	printf("\x1b[38m\x1b[1;0H  nivel:");
 	actualizar_contadores(1);
+	bool final = true;
+	int i = 0;
 
 	do							// bucle principal de pruebas
 	{
 		inicializa_matriz(matrix, level);
 		escribe_matriz(matrix);
 		retardo(5);
-		printf("\x1b[39m\x1b[3;8H (pulse A o B)");
+		printf("\x1b[39m\x1b[3;8H (pulse A)");
 		do
 		{	swiWaitForVBlank();
-			scanKeys();					// esperar pulsación tecla 'A' o 'B'
-		} while (!(keysHeld() & (KEY_A | KEY_B)));
+			scanKeys();	
+		} while (!(keysHeld() & KEY_A));	// esperar pulsación tecla 'A'
 		printf("\x1b[3;8H              ");
 		retardo(5);		
 		if (keysHeld() & KEY_A)			// si pulsa 'A',
 		{								// pasa a siguiente nivel
 			level = (level + 1) % MAXLEVEL;
 			actualizar_contadores(1);
+			i++;
 		}
-	} while (1);
+		
+		if (i == MAXLEVEL)
+			final = false;
+		
+		
+	} while (final);
 
-	return(0);
+
+	return (0);
 
 }
 
