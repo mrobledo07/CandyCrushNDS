@@ -39,38 +39,77 @@
 @;		R0 = número de repeticiones detectadas (mínimo 1)
 	.global cuenta_repeticiones
 cuenta_repeticiones:
-		push {lr}
+	    push {r1-r2, r4-r8, lr}
 		
-		mov r4, #ROWS		@;files matriu
-		mov r5, #COLUMNS	@;columnes matriu
+		mov r7, #ROWS
+		mov r8, #COLUMNS
+		mla r4, r1, r7, r2
+		add r4, r0				@;R4 apunta al elemento (f,c) de 'mat'
+		ldrb r5, [r4]
+		and r5, #7				@;R5 es el valor filtrado (sin marcas de gel.)
+		mov r0, #1				@;R0 = número de repeticiones
+		cmp r3, #0
+		beq .Lconrep_este
+		cmp r3, #1
+		beq .Lconrep_sur
+		cmp r3, #2
+		beq .Lconrep_oeste
+		cmp r3, #3
+		beq .Lconrep_norte
+		b .Lconrep_fin
 		
-		mla r6, r1, r5, r2  @;ens col·loquem a la posicio de la matriu amb l'operacio: (f * #COLUMNS + c)
-		add r6, r6, r0      @;i obtenim el valor de la posicio de memoria equivalent
-		ldrb r7, [r6]
+	Lconrep_este :
+		add r2, #1
+		cmp r2, r8				@;compara la columna actual con #COLUMNS
+		bhs .Lconrep_fin
+		add r4, #1				@;pasa a la siguiente columna
+		ldrb r6, [r4]
+		and r6, #7
+		cmp r6, r5				@;compara el valor inicial con la nueva posición
+		bne .Lconrep_fin
+		add r0, #1				@;añade una repetición
+		b .Lconrep_este
+	
+	Lconrep_sur :
+		add r1, #1
+		cmp r1, r7				@;compara la fila actual con #ROWS
+		bhs .Lconrep_fin
+		add r4, r7				@;pasa a la siguiente fila
+		ldrb r6, [r4]
+		and r6, #7
+		cmp r6, r5				@;compara el valor inicial con la nueva posición
+		bne .Lconrep_fin
+		add r0, #1				@;añade una repetición
+		b .Lconrep_sur
+	
+	Lconrep_oeste :
+		sub r2, #1
+		cmp r2, #0				@;compara la columna actual con la primera columna
+		blo .Lconrep_fin
+		sub r4, #1				@;retrocede a la columna anterior
+		ldrb r6, [r4]
+		and r6, #7
+		cmp r6, r5				@;compara el valor inicial con la nueva posición
+		bne .Lconrep_fin
+		add r0, #1				@;añade una repetición
+		b .Lconrep_oeste
 		
-		and r8, r7, #0x07  	@;usem una mascara per als 3 bits de menor pes
+	Lconrep_norte :
+		sub r1, #1
+		cmp r1, #0				@;compara la fila actual con el primera fila
+		blo .Lconrep_fin
+		sub r4, r7				@;retrocede a la fila anterior
+		ldrb r6, [r4]
+		and r6, #7
+		cmp r6, r5				@;compara el valor inicial con la nueva posición
+		bne .Lconrep_fin
+		add r0, #1				@;añade una repetición
+		b .Lconrep_norte
+	
+	Lconrep_fin :
 		
-		mov r9, #1 			@;establim el numero de repeticions a 1 (tal com indica el manual)
-		
-		@;r3 conté la direccio que volem seguir, ara comprovem de quina de les 4 possibles es tracta
-		cmp r3, #0 			@; est
-		beq .Lest
-		cmp r3, #1 			@; sud
-		beq .Lsud
-		cmp r3, #2 			@; oest
-		beq .Loest
-		cmp r3, #3 			@; nord
-		beq .Lnord
-		
-		.Lest:
-		
-		.Lsud:
-		
-		.Loest:
-		
-		.Lnord:
-		
-		pop {pc}
+		pop {r1-r2, r4-r8, pc}
+
 
 
 
