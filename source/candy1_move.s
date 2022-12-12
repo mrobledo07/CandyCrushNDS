@@ -1,4 +1,4 @@
-	@;=                                                         	      	=
+@;=                                                         	      	=
 @;=== candy1_move: rutinas para contar repeticiones y bajar elementos ===
 @;=                                                          			=
 @;=== Programador tarea 1E: victor.fosch@estudiants.urv.cat			  ===
@@ -158,42 +158,49 @@ baja_verticales:
 		
 		mov r1, #ROWS
 		mov r2, #COLUMNS
+		mov r0, #0
 		add r9, r4, r2				@;R9 = primera posició de la segona fila
-		mla r3, r1, r2, r4   		@;Conté la direccio de l'última posició de la matriu
+		mla r3, r1, r2, r4   		@;R3 = direccio de l'última posició de la matriu + 1
 		
 	Lrecorre_mat:
-		ldrb r5, [r3]				@;Valor del element a la posicio actual
-		cmp r3, r9			
-		blo .Lfila_superior			@;Si la direccio de la posició actual es inferior a R9, ens trobem a la fila superior de la matriu
-		tst r5, #7					@;Fa un tst amb els tres bits baixos, per comprovar si hi ha un 0, 8 o 16
-		beq .Lbaixa_elem
-		cmp r3, r4					@;Si R3=R4 ens trobem a la primera posició de la matriu
-		beq .Lfora_mat		
 		sub r3, #1
+		cmp r3, r4					@;Si R3 < R4 ens trobem fora de la matriu
+		blo .Lfora_mat
+		ldrb r5, [r3]				@;R5 = valor del element a la posicio actual
+		cmp r3, r9
+		blo .Lfila_superior			@;Si R3 < R9 ens trobem a la fila superior de la matriu
+		tst r5, #7					@;tst amb els tres bits baixos, per comprovar si hi ha un 0, 8 o 16
+		beq .Lbaixa_elem
 		b .Lrecorre_mat
-		
+
 	Lbaixa_elem:
-		mov r6, r3
+		mov r6, r3		
 		Lelem_superior:
-			sub r6, r2
-			ldrb r7, [r6]				@;R7 conté el valor del element superior a la posicio buida
+			sub r6, r2					@;R6 = direccio de la posició superior a l'element buit
+			cmp r6, r9					@;Comprovem que no ens trobem a la ultima fila
+			blo .Lfila_superior
+			ldrb r7, [r6]				@;R7 = valor del element superior a la posicio buida
 			cmp r7, #7					
 			beq .Lrecorre_mat			@;si R7 es un bloc sòlid no cambia res i segueix recorren la matriu
 			cmp r7, #15
 			beq .Lelem_superior			@;si R7 es un forat mira el valor del element superior
-			and r7, #7
-			strb r7, [r3]				@;Coloquem el valor del element, filtrat, a la posicio buida
-			ldrb r7, [r6]
+			mov r8, r7
+			and r8, #7
+			add r8, r5					@;R8 = valor filtrar del element superior + possible gelatina inferior
+			strb r3, [r8]
 			lsr r7, #3
 			lsl	r7, #3
-			strb r7, [r6]				@;Eliminem el valor del element i el guardem
+			strb r6, [r7]				@;Eliminem el valor del element i guardem el resultat
+			add r0, #1					@;Hi ha hagut moviment
 			b .Lrecorre_mat
 		
 	Lfila_superior:
 		tst r5, #7
 		bne .Lrecorre_mat
 		add r5, #3						@;Aqui ficara un element aleatori
-		
+		strb r3, [r5]
+		add r0, #1						@;Hi ha hagut moviment
+		b .Lrecorre_mat
 		
 	Lfora_mat:
 		
