@@ -134,89 +134,29 @@ recombina_elementos:
 		.LFor4:
 			ldrb r7, [r4, r3]
 			
-			mov r9, r7, lsr #3	@; bits 4 i 3 (2 bits altos) en r9
-			and r9, #0x03
-			cmp r9, #0			@; si los 2 bits altos son 00, son elementos basicos
-			beq .Lcopiar_elembasicosAceros
-			cmp r9, #1			@; si los 2 bits altos son 01, son gelatinas simples
-			beq .Lcopiar_gelatinassimplesbasicas
-			cmp r9, #2			@; si los 2 bits altos son 10, son gelatinas dobles
-			beq .Lcopiar_gelatinasdoblesbasicas
-			and r8, r7, #0x07
-			cmp r8, #7			@; si los 3 bits bajos son unos, copiaremos cero en mat_recomb1 (dependiendo de otras comprobaciones en la funcion copia_ceros)
-			beq .Lcopiar_ceros
-			cmp r8, #0			@; si los 3 bits bajos son ceros, tambien copiaremos cero en mat_recomb1 (dependiendo de otras comprobaciones en la funcion copia_ceros)
-			bne .Lcopiar_elementosbasicos	@; si los 3 bits bajos no son ni todo ceros ni todo unos, seran elementos basicos(dependiendo de los 2 bits altos)
+			and r8, r7, #0x07	@; r8 -> 3 bits bajos del elemento
+			cmp r8, #0
+			moveq r8, #0 
+			cmp r8, #7
+			moveq r8, #0
 			
-			.Lcopiar_ceros:
-				cmp r8, #0			@; si los 3 bits bajos son todos unos, será bloque o hueco
-				bne .Lbloque_hueco
-				cmp r9, #0			@; si los 3 bits bajos son todos ceros y los 2 bits altos son diferentes de 00, asignaremos 0 a matrecomb1
-				bne .Lasignacion_ceros
-				beq .Lcontinue_noasignado_matrecomb1
-				
-				.Lbloque_hueco:
-					cmp r9, #2		@; si los 2 bits altos son 10, no será ni bloque ni hueco, no asignamos 0 a matrecomb1
-					beq .Lcopiar_elementosbasicos
-				
-				.Lasignacion_ceros:
-					mov r8, #0
-					strb r8, [r5, r3]
-					b .Lcontinue_asignado	
-						
-				b .Lcontinue_noasignado_matrecomb1	@; en caso que no se haya asignado nada, se asignara el elemento correspondiente en matrecomb1 en la funcion marcada
+			mov r8, r7, lsr #3
+			and r8, #0x03
 			
-			.Lcopiar_elementosbasicos:
-				and r8, r7, #0x07		@; si los 3 bits bajos no son ni todos 0 ni todos 1, ponemos los 2 bits altos a 0 para convertirlo a un elemento basico
-				strb r8, [r5, r3]
-				
-				b .Lcontinue_asignado
+			cmp r8, #1
+			subeq r8, r7, #8 
+			cmp r8, #2
+			subeq r8, r7, #16 
 			
-			.Lcopiar_elembasicosAceros:
-				and r8, r7, #0x07
-				cmp r8, #0			
-				beq .Lcontinue_noasignado_matrecomb2
-				cmp r8, #7
-				beq .Lcontinue_noasignado_matrecomb2
-				mov r8, #0
-				strb r8, [r6, r3]	@; si los 3 bits bajos no son ni todos 0 ni todos 1, asignamos 0 a matrecomb2
-			
-				b .Lcontinue_asignado
-			
-			.Lcopiar_gelatinassimplesbasicas:
-				and r8, r7, #0x07
-				cmp r8, #7
-				beq .Lcontinue_noasignado_matrecomb2
-				mov r8, #8
-				strb r8, [r6, r3]	@; si los 3 bits bajos no son todos 1, asignamos la gelatina basica 8  a matrecomb2 
-			
-				b .Lcontinue_asignado
-			
-			.Lcopiar_gelatinasdoblesbasicas:
-				and r8, r7, #0x07
-				cmp r8, #7
-				beq .Lcontinue_noasignado_matrecomb2
-				mov r8, #16
-				strb r8, [r6, r3]   @; si los 3 bits bajos no son todos 1, asignamos la gelatina basica 16 a matrecomb2
-			
-				b .Lcontinue_asignado
-				
-			.Lcontinue_noasignado_matrecomb1:
-				strb r7, [r5, r3]
-				b .Lcontinue_asignado
-				
-			.Lcontinue_noasignado_matrecomb2:
-				strb r7, [r6, r3]
-				
-			.Lcontinue_asignado:
-				add r3, #1
-				add r2, #1
-				cmp r2, #COLUMNS
-				blo .LFor4
-				add r1, #1
-				cmp r1, #ROWS
-				blo .LFor3
-				
+			mov r8 ,r7
+			strb r8, [r5, r3]
+			add r3, #1
+			add r2, #1
+			cmp r2, #COLUMNS
+			blo .Lfor4
+			add r1, #1
+			cmp r1, #ROWS
+			blo .Lfor3
 				
 		@; segunda parte
 		
