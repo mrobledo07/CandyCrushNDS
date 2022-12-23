@@ -140,14 +140,14 @@ recombina_elementos:
 			and r9, r7, #0x07	@; r8 -> 3 bits bajos del elemento
 			cmp r9, #0			@; si los 3 bits bajos -> 000
 			b .Lelemento_a_0	@; entonces es una gelatina vacía, la ponemos a 0
-			cmp r9 #7			@; si los 3 bits bajos -> 111
+			cmp r9, #7			@; si los 3 bits bajos -> 111
 			b .Lelemento_a_0	@; entonces es un bloque solido o hueco, lo ponemos a 0
 			
 			mov r9, r7, lsr #3	@; r8 -> 2 bits altos
 			
 			cmp r9, #0			@; si 2 bits altos -> 00
 			moveq r10, #0		@; entonces es un elemento simple 
-			cmp r9 #1			@; si 2 bits altos -> 01
+			cmp r9, #1			@; si 2 bits altos -> 01
 			subeq r8, r7, #8 	@; entonces es una gelatina simple, restamos 8 (condició mat_recomb1)
 			moveq r10, #8		@; entonces es una gelatina simple, asignamos su código básico (condición mat_recomb2)
 			cmp r9, #2			@; si 2 bits altos -> 10
@@ -162,10 +162,10 @@ recombina_elementos:
 			add r3, #1			@; aumentamos el índice de desplazamiento
 			add r2, #1			@; aumentamos el índice de columnas
 			cmp r2, #COLUMNS	@; si aún no se han recorrido todas las columnas, recorre una columna más 
-			blo .Lfor4
+			blo .LFor4
 			add r1, #1			@; aumentamos el índice de filas
 			cmp r1, #ROWS		@; si aún no se han recorrido todas las filas, recorre una fila más
-			blo .Lfor3
+			blo .LFor3
 				
 		@; segunda parte, recorremos la matriz de juego y le asignamos los valores correspondientes
 		

@@ -97,16 +97,16 @@ int main(void)
 		if (i == 0){
 			copia_mapa(matrix,level);
 			recombina_elementos(matrix);
+			printf("\x1b[2;0Hmatriu_joc");
+			escribe_matriz(matrix);
+		}
+		else if(i == 1){
 			printf("\x1b[2;0Hmat_recomb1");
 			escribe_matriz(mat_recomb1);
 		}
-		else if(i == 1){
+		else if (i == 2){
 			printf("\x1b[2;0Hmat_recomb2");
 			escribe_matriz(mat_recomb2);
-		}
-		else if (i == 2){
-			printf("\x1b[2;0Hmatriu__joc");
-			escribe_matriz(matrix);
 		}
 
 		retardo(5);
