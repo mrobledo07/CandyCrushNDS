@@ -126,6 +126,7 @@ recombina_elementos:
 		ldr r6, = mat_recomb2
 		mov r4, r0
 		
+		@; primera parte, calculamos los elementos de mat_recomb1 y mat_recomb2
 		mov r1, #0				@; r1 es indice de filas
 		mov r3, #0				@; r3 es indice de desplazamiento
 		
@@ -133,26 +134,31 @@ recombina_elementos:
 			mov r2, #0			@; r2 es indice de columnas
 		.LFor4:
 			ldrb r7, [r4, r3]
-			mov r8, r7
+			mov r8, r7			@; r8 = elemento que se asignará a una posición de mat_recomb1
+			mov r10, r7			@; r10 = elemento que se asignará a una posición de mat_recomb2
 			
 			and r9, r7, #0x07	@; r8 -> 3 bits bajos del elemento
 			cmp r9, #0			@; si los 3 bits bajos -> 000
-			moveq r8, #0 		@; entonces es una gelatina vacía, la ponemos a 0
+			b .Lelemento_a_0	@; entonces es una gelatina vacía, la ponemos a 0
 			cmp r9 #7			@; si los 3 bits bajos -> 111
-			moveq r8, #0		@; entonces es un bloque solido o hueco, lo ponemos a 0
+			b .Lelemento_a_0	@; entonces es un bloque solido o hueco, lo ponemos a 0
 			
 			mov r9, r7, lsr #3	@; r8 -> 2 bits altos
 			
 			cmp r9, #0			@; si 2 bits altos -> 00
-			moveq r10, #0		@; entonces es un elemento simple x
+			moveq r10, #0		@; entonces es un elemento simple 
 			cmp r9 #1			@; si 2 bits altos -> 01
-			subeq r8, r7, #8 	@; entonces es una gelatina simple, restamos 8
-			moveq r10, #8
+			subeq r8, r7, #8 	@; entonces es una gelatina simple, restamos 8 (condició mat_recomb1)
+			moveq r10, #8		@; entonces es una gelatina simple, asignamos su código básico (condición mat_recomb2)
 			cmp r9, #2			@; si 2 bits altos -> 10
-			subeq r8, r7, #16 	@; entonces es una gelatina doble, restamos 16
-			moveq r10, #16
+			subeq r8, r7, #16 	@; entonces es una gelatina doble, restamos 16 (condición mat_recomb1)
+			moveq r10, #16		@; entonces es una gelatina simple, asignamos su código básico (condición mat_recomb2)
 			
+			.Lelemento_a_0:
+				mov r8, #0
+				
 			strb r8, [r5, r3]	@; guardamos el elemento en mat_recomb1
+			strb r10, [r6, r3]  @; guardamos el elemento en mat_recomb2
 			add r3, #1			@; aumentamos el índice de desplazamiento
 			add r2, #1			@; aumentamos el índice de columnas
 			cmp r2, #COLUMNS	@; si aún no se han recorrido todas las columnas, recorre una columna más 
@@ -161,16 +167,15 @@ recombina_elementos:
 			cmp r1, #ROWS		@; si aún no se han recorrido todas las filas, recorre una fila más
 			blo .Lfor3
 				
-		@; segunda parte
+		@; segunda parte, recorremos la matriz de juego y le asignamos los valores correspondientes
 		
 		mov r1, #0		@; indice de filas
-		mov r10, #0		@; indice de desplazamiento
-		
+		mov r3, #0		@; indice de desplazamiento
 		
 		.LFor5:
 			mov r2, #0	@; indice de columnas
 		.LFor6:
-			ldrb r7, [r4, r10]		@; cargamos en r7 el valor contenido en la posicion "i" de la matriz
+			ldrb r7, [r4, r3]		@; cargamos en r7 el valor contenido en la posicion "i" de la matriz
 			and r7, #0x07
 			cmp r7, #0
 			beq .LFinal				@; si el valor de r7 es 0, 8 o 16, ignoramos la actual posicion
@@ -180,7 +185,7 @@ recombina_elementos:
 			b .Lcodigo_elemento
 			
 			.Lhay_secuencia:
-				strb r9, [r6, r10]	@; restituimos el valor de la posicion actual de mat_recomb2
+				strb r9, [r6, r3]	@; restituimos el valor de la posicion actual de mat_recomb2
 			
 			.Lcodigo_elemento:
 				mov r7, #COLUMNS
@@ -193,9 +198,9 @@ recombina_elementos:
 				beq .Lcodigo_elemento
 				
 			
-			ldrb r9, [r6, r10]		@; cargamos en r9 el valor de la posicion actual de mat_recomb2
-			and r3, r9, #0x07
-			cmp r3, #0				@; si es una gelatina basica 0, 8 o 16, mat_recomb2[i] = mat_recomb2[i]+mat_recomb1[aleatorio]
+			ldrb r9, [r6, r3]		@; cargamos en r9 el valor de la posicion actual de mat_recomb2
+			and r10, r9, #0x07
+			cmp r10, #0				@; si es una gelatina basica 0, 8 o 16, mat_recomb2[i] = mat_recomb2[i]+mat_recomb1[aleatorio]
 			addeq r8, r9
 			strb r8, [r6, r10]		@; si no es una gelatina basica, mat_recomb2[i] = mat_recomb1[aleatorio]
 			
