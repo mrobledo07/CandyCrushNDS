@@ -133,29 +133,32 @@ recombina_elementos:
 			mov r2, #0			@; r2 es indice de columnas
 		.LFor4:
 			ldrb r7, [r4, r3]
+			mov r8, r7
 			
-			and r8, r7, #0x07	@; r8 -> 3 bits bajos del elemento
-			cmp r8, #0
-			moveq r8, #0 
-			cmp r8, #7
-			moveq r8, #0
+			and r9, r7, #0x07	@; r8 -> 3 bits bajos del elemento
+			cmp r9, #0			@; si los 3 bits bajos -> 000
+			moveq r8, #0 		@; entonces es una gelatina vacía, la ponemos a 0
+			cmp r9 #7			@; si los 3 bits bajos -> 111
+			moveq r8, #0		@; entonces es un bloque solido o hueco, lo ponemos a 0
 			
-			mov r8, r7, lsr #3
-			and r8, #0x03
+			mov r9, r7, lsr #3	@; r8 -> 2 bits altos
 			
-			cmp r8, #1
-			subeq r8, r7, #8 
-			cmp r8, #2
-			subeq r8, r7, #16 
+			cmp r9, #0			@; si 2 bits altos -> 00
+			moveq r10, #0		@; entonces es un elemento simple x
+			cmp r9 #1			@; si 2 bits altos -> 01
+			subeq r8, r7, #8 	@; entonces es una gelatina simple, restamos 8
+			moveq r10, #8
+			cmp r9, #2			@; si 2 bits altos -> 10
+			subeq r8, r7, #16 	@; entonces es una gelatina doble, restamos 16
+			moveq r10, #16
 			
-			mov r8 ,r7
-			strb r8, [r5, r3]
-			add r3, #1
-			add r2, #1
-			cmp r2, #COLUMNS
+			strb r8, [r5, r3]	@; guardamos el elemento en mat_recomb1
+			add r3, #1			@; aumentamos el índice de desplazamiento
+			add r2, #1			@; aumentamos el índice de columnas
+			cmp r2, #COLUMNS	@; si aún no se han recorrido todas las columnas, recorre una columna más 
 			blo .Lfor4
-			add r1, #1
-			cmp r1, #ROWS
+			add r1, #1			@; aumentamos el índice de filas
+			cmp r1, #ROWS		@; si aún no se han recorrido todas las filas, recorre una fila más
 			blo .Lfor3
 				
 		@; segunda parte
