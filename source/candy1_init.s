@@ -202,7 +202,7 @@ recombina_elementos:
 			and r10, r9, #0x07
 			cmp r10, #0				@; si es una gelatina basica 0, 8 o 16, mat_recomb2[i] = mat_recomb2[i]+mat_recomb1[aleatorio]
 			addeq r8, r9
-			strb r8, [r6, r10]		@; si no es una gelatina basica, mat_recomb2[i] = mat_recomb1[aleatorio]
+			strb r8, [r6, r3]		@; si no es una gelatina basica, mat_recomb2[i] = mat_recomb1[aleatorio]
 			
 			.Lcuenta_repeticiones:
 				mov r0, r4
@@ -216,12 +216,12 @@ recombina_elementos:
 				cmp r0, #3
 				beq .Lhay_secuencia	@; si hay secuencia, restituimos el valor anterior en la posicion actual de mat_recomb2, y volvemos a coger una pos. aleatoria de mat_recomb1
 			
-				mov r3, #0
-				strb r3, [r5, r7]	@; fijamos a 0 el valor que hemos usado de mat_recomb1
-				strb r8, [r4, r10] 	@; asignamos el valor de mat_recomb2[i] en la matriz_de_juego[i]
+				mov r9, #0
+				strb r9, [r5, r7]	@; fijamos a 0 el valor que hemos usado de mat_recomb1
+				strb r8, [r4, r3] 	@; asignamos el valor de mat_recomb2[i] en la matriz_de_juego[i]
 		
 		.LFinal:
-			add r10, #1
+			add r3, #1
 			add r2, #1
 			cmp r2, #COLUMNS
 			blo .LFor6
@@ -229,9 +229,7 @@ recombina_elementos:
 			cmp r1, #ROWS
 			blo .LFor5
 			
-	
 		pop {r1-r10,pc}
-
 
 
 @;:::RUTINAS DE SOPORTE:::
