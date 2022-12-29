@@ -25,8 +25,8 @@ int level = 0;					// nivel del juego (nivel inicial = 0)
 int points;						// contador global de puntos
 int movements;					// número de movimientos restantes
 int gelees;						// número de gelatinas restantes
-
-
+char mat_recomb1[ROWS][COLUMNS];
+char mat_recomb2[ROWS][COLUMNS];
 
 /* actualizar_contadores(code): actualiza los contadores que se indican con el
 	parámetro 'code', que es una combinación binaria de booleanos, con el
@@ -81,13 +81,11 @@ int main(void)
 		
 	} while (final);
 
-
+	
 	consoleDemoInit();
 	printf("candyNDS (prueba tarea 1B)\n");
 	printf("\x1b[38m\x1b[1;0H  nivel:");
-	actualizar_contadores(1);
-	char mat_recomb1[ROWS][COLUMNS];		
-	char mat_recomb2[ROWS][COLUMNS];		
+	actualizar_contadores(1);		
 	level = 0;
 	i = 0;
 	
@@ -97,16 +95,16 @@ int main(void)
 		if (i == 0){
 			copia_mapa(matrix,level);
 			recombina_elementos(matrix);
-			printf("\x1b[2;0Hmatriu_joc");
-			escribe_matriz(matrix);
-		}
-		else if(i == 1){
 			printf("\x1b[2;0Hmat_recomb1");
 			escribe_matriz(mat_recomb1);
 		}
-		else if (i == 2){
+		else if(i == 1){
 			printf("\x1b[2;0Hmat_recomb2");
 			escribe_matriz(mat_recomb2);
+		}
+		else if (i == 2){
+			printf("\x1b[2;0Hmatriu__joc");
+			escribe_matriz(matrix);
 		}
 
 		retardo(5);
@@ -122,7 +120,7 @@ int main(void)
 		if (keysHeld() & KEY_B)			// si pulsa 'B'
 			i++;
 			
-		if (i == 3)
+		if (i == 3)						// si se han visto las 3 matrices, cambiamos de nivel
 		{
 			level = (level + 1) % MAXLEVEL;
 			actualizar_contadores(1);

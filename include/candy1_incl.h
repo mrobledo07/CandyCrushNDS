@@ -48,6 +48,7 @@ extern void copia_mapa(char mat[][COLUMNS], int num_map);
 extern void inicializa_matriz(char matriz[][COLUMNS], int num_mapa);	// 1A
 extern void recombina_elementos(char matriz[][COLUMNS]);				// 1B
 
+
 	// candy1_secu.s //
 extern int  hay_secuencia(char matriz[][COLUMNS]);						// 1C
 extern void elimina_secuencias(char matriz[][COLUMNS],					// 1D

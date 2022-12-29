@@ -12,12 +12,12 @@
 
 
 @;-- .bss. variables (globales) no inicializadas ---
-.bss
-		.align 2
+@;.bss
+@;		.align 2
 @; matrices de recombinación: matrices de soporte para generar una nueva matriz
 @;	de juego recombinando los elementos de la matriz original.
-	mat_recomb1:	.space ROWS*COLUMNS
-	mat_recomb2:	.space ROWS*COLUMNS
+@;	mat_recomb1:	.space ROWS*COLUMNS
+@;	mat_recomb2:	.space ROWS*COLUMNS
 
 
 
@@ -96,6 +96,7 @@ inicializa_matriz:
 			cmp r1, #ROWS
 			blo .LFor1
 			
+			
 		
 		pop {r1-r9, pc}				@;recuperar registros y volver
 
@@ -121,12 +122,13 @@ inicializa_matriz:
 @;		R0 = dirección base de la matriz de juego
 	.global recombina_elementos
 recombina_elementos:
-		push {r1-r10,lr}
+		push {r1-r11,lr}
 		ldr r5, =mat_recomb1
-		ldr r6, = mat_recomb2
+		ldr r6, =mat_recomb2
 		mov r4, r0
 		
 		@; primera parte, calculamos los elementos de mat_recomb1 y mat_recomb2
+		.LPrimera_parte:
 		mov r1, #0				@; r1 es indice de filas
 		mov r3, #0				@; r3 es indice de desplazamiento
 		
@@ -137,13 +139,13 @@ recombina_elementos:
 			mov r8, r7			@; r8 = elemento que se asignará a una posición de mat_recomb1
 			mov r10, r7			@; r10 = elemento que se asignará a una posición de mat_recomb2
 			
-			and r9, r7, #0x07	@; r8 -> 3 bits bajos del elemento
+			and r9, r7, #0x07	@; r9 -> 3 bits bajos del elemento
 			cmp r9, #0			@; si los 3 bits bajos -> 000
-			b .Lelemento_a_0	@; entonces es una gelatina vacía, la ponemos a 0
+			beq .Lelemento_a_0	@; entonces es una gelatina vacía, la ponemos a 0
 			cmp r9, #7			@; si los 3 bits bajos -> 111
-			b .Lelemento_a_0	@; entonces es un bloque solido o hueco, lo ponemos a 0
+			beq .Lelemento_a_0	@; entonces es un bloque solido o hueco, lo ponemos a 0
 			
-			mov r9, r7, lsr #3	@; r8 -> 2 bits altos
+			mov r9, r7, lsr #3	@; r9 -> 2 bits altos
 			
 			cmp r9, #0			@; si 2 bits altos -> 00
 			moveq r10, #0		@; entonces es un elemento simple 
@@ -153,10 +155,12 @@ recombina_elementos:
 			cmp r9, #2			@; si 2 bits altos -> 10
 			subeq r8, r7, #16 	@; entonces es una gelatina doble, restamos 16 (condición mat_recomb1)
 			moveq r10, #16		@; entonces es una gelatina simple, asignamos su código básico (condición mat_recomb2)
+			b .Lfinal
 			
 			.Lelemento_a_0:
 				mov r8, #0
-				
+			
+			.Lfinal:
 			strb r8, [r5, r3]	@; guardamos el elemento en mat_recomb1
 			strb r10, [r6, r3]  @; guardamos el elemento en mat_recomb2
 			add r3, #1			@; aumentamos el índice de desplazamiento
@@ -169,6 +173,7 @@ recombina_elementos:
 				
 		@; segunda parte, recorremos la matriz de juego y le asignamos los valores correspondientes
 		
+		.LSegunda_parte:
 		mov r1, #0		@; indice de filas
 		mov r3, #0		@; indice de desplazamiento
 		
@@ -182,10 +187,15 @@ recombina_elementos:
 			cmp r7, #7
 			beq .LFinal				@; si el valor de r7 es 0,8,16, hueco o bloque solido, ignoramos la posicion
 			
+			mov r11, #0				@; r11 -> indice que contará cuantas veces se ha detectado una secuencia para una posición determinada
 			b .Lcodigo_elemento
 			
 			.Lhay_secuencia:
 				strb r9, [r6, r3]	@; restituimos el valor de la posicion actual de mat_recomb2
+				add r11, #1
+				ldr r7, =405
+				cmp r11, r7		@; 405 -> COLUMNS*ROWS*3 -> 9*9*5 = 405
+				beq .LPrimera_parte	@; si ha detectado una secuencia 405 veces para la misma posición en mat_recomb2, se ha entrado en bucle infinito, volvemos al primer paso
 			
 			.Lcodigo_elemento:
 				mov r7, #COLUMNS
@@ -199,26 +209,24 @@ recombina_elementos:
 				
 			
 			ldrb r9, [r6, r3]		@; cargamos en r9 el valor de la posicion actual de mat_recomb2
-			and r10, r9, #0x07
-			cmp r10, #0				@; si es una gelatina basica 0, 8 o 16, mat_recomb2[i] = mat_recomb2[i]+mat_recomb1[aleatorio]
-			addeq r8, r9
-			strb r8, [r6, r3]		@; si no es una gelatina basica, mat_recomb2[i] = mat_recomb1[aleatorio]
+			add r9, r8				@; mat_recomb2[i] = mat_recomb2[i] + mat_recomb1[aleatorio]
+			strb r9, [r6, r3]		@; en mat_recomb1 solo tenemos códigos básicos de elementos y la posición que cargamos de mat_recomb2 sabemos que no es 7 o 15 y solo puede ser 0, 8 o 16
 			
-			.Lcuenta_repeticiones:
-				mov r0, r4
+			.Lcuenta_repeticiones:  
+				mov r0, r6
 				mov r3, #2			@; orientacion = oeste
 				bl cuenta_repeticiones
 				cmp r0, #3			
 				beq .Lhay_secuencia
-				mov r0, r4
+				mov r0, r6
 				mov r3, #3			@; orientacion = norte
 				bl cuenta_repeticiones
 				cmp r0, #3
 				beq .Lhay_secuencia	@; si hay secuencia, restituimos el valor anterior en la posicion actual de mat_recomb2, y volvemos a coger una pos. aleatoria de mat_recomb1
 			
-				mov r9, #0
-				strb r9, [r5, r7]	@; fijamos a 0 el valor que hemos usado de mat_recomb1
-				strb r8, [r4, r3] 	@; asignamos el valor de mat_recomb2[i] en la matriz_de_juego[i]
+			mov r8, #0
+			strb r8, [r5, r7]	@; fijamos a 0 el valor que hemos usado de mat_recomb1
+			strb r9, [r4, r3] 	@; asignamos el valor de mat_recomb2[i] en la matriz_de_juego[i]
 		
 		.LFinal:
 			add r3, #1
@@ -228,8 +236,9 @@ recombina_elementos:
 			add r1, #1
 			cmp r1, #ROWS
 			blo .LFor5
-			
-		pop {r1-r10,pc}
+				
+				
+		pop {r1-r11,pc}
 
 
 @;:::RUTINAS DE SOPORTE:::
