@@ -12,12 +12,12 @@
 
 
 @;-- .bss. variables (globales) no inicializadas ---
-@;.bss
-@;		.align 2
+	.bss
+		.align 2
 @; matrices de recombinación: matrices de soporte para generar una nueva matriz
 @;	de juego recombinando los elementos de la matriz original.
-@;	mat_recomb1:	.space ROWS*COLUMNS
-@;	mat_recomb2:	.space ROWS*COLUMNS
+	mat_recomb1:	.space ROWS*COLUMNS
+	mat_recomb2:	.space ROWS*COLUMNS
 
 
 
@@ -63,7 +63,7 @@ inicializa_matriz:
 			strb r7, [r4, r8]
 			mov r9, r7			@; r9 es el elemento variable del mapa de configuracion
 			and r7, #0x07		@; filtramos los 3 bits bajos
-			cmp r7, #0x00
+			cmp r7, #0
 			bne .Lfiif
 			
 			.Lif:
@@ -95,9 +95,7 @@ inicializa_matriz:
 			add r1, #1			@; el indice para el bucle de las filas augmenta en 1 
 			cmp r1, #ROWS
 			blo .LFor1
-			
-			
-		
+	
 		pop {r1-r9, pc}				@;recuperar registros y volver
 
 
@@ -175,12 +173,12 @@ recombina_elementos:
 		
 		.LSegunda_parte:
 		mov r1, #0		@; indice de filas
-		mov r3, #0		@; indice de desplazamiento
+		mov r10, #0		@; indice de desplazamiento
 		
 		.LFor5:
 			mov r2, #0	@; indice de columnas
 		.LFor6:
-			ldrb r7, [r4, r3]		@; cargamos en r7 el valor contenido en la posicion "i" de la matriz
+			ldrb r7, [r4, r10]		@; cargamos en r7 el valor contenido en la posicion "i" de la matriz
 			and r7, #0x07
 			cmp r7, #0
 			beq .LFinal				@; si el valor de r7 es 0, 8 o 16, ignoramos la actual posicion
@@ -190,12 +188,23 @@ recombina_elementos:
 			mov r11, #0				@; r11 -> indice que contará cuantas veces se ha detectado una secuencia para una posición determinada
 			b .Lcodigo_elemento
 			
+			.Lsecuencia_infinita:
+			mov r0, #7
+			bl mod_random
+			cmp r0, r8							@; generamos un elemento aleatorio entre 0 y 6 que sea diferente del que ha generado la secuencia, de manera que no genere secuencia
+			beq .Lsecuencia_infinita
+			strb r0, [r4, r10]					@; guardamos el resultado en mat_recomb2[i]
+			strb r0, [r6, r10]					@; guardamos el resultado en matriu_joc[i]
+			mov r0, #0
+			strb r0, [r5, r7]					@; ponemos a 0 la posición que hayamos escogido de mat_recomb1[aleatorio] aun que no se haya usado
+			b .LFinal
+			
 			.Lhay_secuencia:
-				strb r9, [r6, r3]	@; restituimos el valor de la posicion actual de mat_recomb2
+				strb r9, [r6, r10]				@; restituimos el valor de la posicion actual de mat_recomb2 
 				add r11, #1
-				ldr r7, =405
-				cmp r11, r7		@; 405 -> COLUMNS*ROWS*3 -> 9*9*5 = 405
-				beq .LPrimera_parte	@; si ha detectado una secuencia 405 veces para la misma posición en mat_recomb2, se ha entrado en bucle infinito, volvemos al primer paso
+				ldr r9, =405
+				cmp r11, r9						@; 405 -> COLUMNS*ROWS*3 -> 9*9*5 = 405
+				beq .Lsecuencia_infinita		@; si ha detectado una secuencia 405 veces para la misma posición en mat_recomb2, se ha entrado en bucle infinito, generamos un elemento aleatorio entre 0 y 6
 			
 			.Lcodigo_elemento:
 				mov r7, #COLUMNS
@@ -208,9 +217,9 @@ recombina_elementos:
 				beq .Lcodigo_elemento
 				
 			
-			ldrb r9, [r6, r3]		@; cargamos en r9 el valor de la posicion actual de mat_recomb2
-			add r9, r8				@; mat_recomb2[i] = mat_recomb2[i] + mat_recomb1[aleatorio]
-			strb r9, [r6, r3]		@; en mat_recomb1 solo tenemos códigos básicos de elementos y la posición que cargamos de mat_recomb2 sabemos que no es 7 o 15 y solo puede ser 0, 8 o 16
+			ldrb r9, [r6, r10]		@; cargamos en r9 el valor de la posicion actual de mat_recomb2
+			add r8, r9				@; mat_recomb2[i] = mat_recomb2[i] + mat_recomb1[aleatorio]
+			strb r8, [r6, r10]		@; en mat_recomb1 solo tenemos códigos básicos de elementos y la posición que cargamos de mat_recomb2 sabemos que no es 7 o 15 y solo puede ser 0, 8 o 16
 			
 			.Lcuenta_repeticiones:  
 				mov r0, r6
@@ -223,20 +232,19 @@ recombina_elementos:
 				bl cuenta_repeticiones
 				cmp r0, #3
 				beq .Lhay_secuencia	@; si hay secuencia, restituimos el valor anterior en la posicion actual de mat_recomb2, y volvemos a coger una pos. aleatoria de mat_recomb1
-			
-			mov r8, #0
-			strb r8, [r5, r7]	@; fijamos a 0 el valor que hemos usado de mat_recomb1
-			strb r9, [r4, r3] 	@; asignamos el valor de mat_recomb2[i] en la matriz_de_juego[i]
+				
+			mov r9, #0
+			strb r9, [r5, r7]	@; fijamos a 0 el valor que hemos usado de mat_recomb1
+			strb r8, [r4, r10] 	@; asignamos el valor de mat_recomb2[i] en la matriz_de_juego[i]
 		
 		.LFinal:
-			add r3, #1
+			add r10, #1
 			add r2, #1
 			cmp r2, #COLUMNS
 			blo .LFor6
 			add r1, #1
 			cmp r1, #ROWS
 			blo .LFor5
-				
 				
 		pop {r1-r11,pc}
 
