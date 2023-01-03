@@ -44,6 +44,10 @@
 @;		R1 = número de mapa de configuración
 	.global inicializa_matriz
 inicializa_matriz:
+		push {lr}
+		
+		
+		pop {pc}
 	
 		
 
@@ -68,7 +72,10 @@ inicializa_matriz:
 @;		R0 = dirección base de la matriz de juego
 	.global recombina_elementos
 recombina_elementos:
+		push {lr}
 		
+		
+		pop {pc}
 
 
 
