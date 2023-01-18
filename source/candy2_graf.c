@@ -5,7 +5,7 @@
 	Funciones de inicialización de gráficos (ver 'candy2_main.c')
 
 	Analista-programador: santiago.romani@urv.cat
-	Programador tarea 2A: xxx.xxx@estudiants.urv.cat
+	Programador tarea 2A: miguel.robledo@estudiants.urv.cat
 	Programador tarea 2B: yyy.yyy@estudiants.urv.cat
 	Programador tarea 2C: zzz.zzz@estudiants.urv.cat
 	Programador tarea 2D: uuu.uuu@estudiants.urv.cat
@@ -31,8 +31,20 @@ gelatina mat_gel[ROWS][COLUMNS];	// matriz de gelatinas
 	por parámetro (independientemente de los códigos de gelatinas).*/
 void genera_sprites(char mat[][COLUMNS])
 {
-
-
+	n_sprites = 0;
+	SPR_ocultarSprites(128);
+	for(int i = 0; i < ROWS*COLUMNS; i++)
+		vect_elem[i].ii = -1;
+		
+	for(int i = 0; i < ROWS; i++)
+		for(int j = 0; j < COLUMNS; j++)
+			if(busca_elemento(i, j) != ROWS*COLUMNS)
+			{
+				crea_elemento(1, i, j);
+				n_sprites++;
+			}
+				
+	SPR_actualizarSprites(OAM, n_sprites);
 }
 
 
@@ -86,12 +98,13 @@ void ajusta_imagen3(int ibg)
 				generando el fondo 3 y fijando la transparencia entre fondos.*/
 void init_grafA()
 {
-	int bg1A, bg2A, bg3A;
+	//int bg1A, bg2A, bg3A;
 
 	videoSetMode(MODE_3_2D | DISPLAY_SPR_1D_LAYOUT | DISPLAY_SPR_ACTIVE);
 	
 // Tarea 2Aa:
 	// reservar banco F para sprites, a partir de 0x06400000
+	vramSetBankF(VRAM_F_MAIN_SPRITE_0x06400000);
 
 // Tareas 2Ba y 2Ca:
 	// reservar banco E para fondos 1 y 2, a partir de 0x06000000
@@ -106,8 +119,9 @@ void init_grafA()
 	// cargar las baldosas de la variable SpritesTiles[] a partir de la
 	// dirección virtual de memoria gráfica para sprites, y cargar los colores
 	// de paleta asociados contenidos en  la variable SpritesPal[]
-
-
+	dmaCopy(SpritesTiles, (void *)0x06400000, SpritesTilesLen);
+	dmaCopy(SpritesPal, SPRITE_PALETTE, SpritesPalLen);
+	
 
 // Tarea 2Ba:
 	// inicializar el fondo 2 con prioridad 2
