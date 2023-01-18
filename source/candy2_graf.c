@@ -31,20 +31,24 @@ gelatina mat_gel[ROWS][COLUMNS];	// matriz de gelatinas
 	por parámetro (independientemente de los códigos de gelatinas).*/
 void genera_sprites(char mat[][COLUMNS])
 {
+	int i, j;
 	n_sprites = 0;
+	
 	SPR_ocultarSprites(128);
-	for(int i = 0; i < ROWS*COLUMNS; i++)
-		vect_elem[i].ii = -1;
+	
+	for(i = 0; i < ROWS*COLUMNS; i++)
+		vect_elem[i].ii = -1;	// se desactivan los elementos de vect_elem
 		
-	for(int i = 0; i < ROWS; i++)
-		for(int j = 0; j < COLUMNS; j++)
-			if(busca_elemento(i, j) != ROWS*COLUMNS)
+	for(i = 0; i < ROWS; i++)
+		for(j = 0; j < COLUMNS; j++)
+			if(mat[i][j] != 0 && mat[i][j] != 7 && mat[i][j] != 8 && mat[i][j] != 15 && mat[i][j] != 16)
 			{
-				crea_elemento(1, i, j);
+				crea_elemento(mat[i][j]&0x7, i, j);	// se crea un elemento por cada posicion de la matriz de juego que contiene un elemento
 				n_sprites++;
 			}
-				
-	SPR_actualizarSprites(OAM, n_sprites);
+		
+	swiWaitForVBlank();
+	SPR_actualizarSprites(OAM, 128);	// se actualiza Object Attribute Memory con los datos de los nuevos sprites
 }
 
 
@@ -119,8 +123,8 @@ void init_grafA()
 	// cargar las baldosas de la variable SpritesTiles[] a partir de la
 	// dirección virtual de memoria gráfica para sprites, y cargar los colores
 	// de paleta asociados contenidos en  la variable SpritesPal[]
-	dmaCopy(SpritesTiles, (void *)0x06400000, SpritesTilesLen);
-	dmaCopy(SpritesPal, SPRITE_PALETTE, SpritesPalLen);
+	dmaCopy(SpritesTiles, (unsigned int *)SPRITE_GFX, SpritesTilesLen);
+	dmaCopy(SpritesPal, (unsigned int *)SPRITE_PALETTE, SpritesPalLen);
 	
 
 // Tarea 2Ba:

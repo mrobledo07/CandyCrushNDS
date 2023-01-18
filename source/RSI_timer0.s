@@ -40,7 +40,15 @@ rsi_vblank:
 		push {lr}
 		
 @;Tareas 2Ea
-
+		ldr r0, =update_spr
+		ldrh r1, [r0]
+		cmp r1, #0
+		beq .LnoActualizar
+		bl SPR_actualizarSprites()
+		mov r1, #0
+		strh r1, [r0]
+		
+		.LnoActualizar:
 
 @;Tarea 2Ga
 

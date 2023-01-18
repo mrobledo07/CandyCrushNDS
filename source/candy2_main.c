@@ -3,6 +3,8 @@
 #include <stdio.h>
 #include <time.h>
 #include <candy2_incl.h>
+#include <candy1_incl.h>
+
 	
 	
 /* variables globales */
@@ -32,7 +34,7 @@ void actualizar_contadores(int code)
 
 int main(void)
 {
-		
+	inicializa_matriz(matrix, 3);
 	init_grafA();
 	genera_sprites(matrix);
 
