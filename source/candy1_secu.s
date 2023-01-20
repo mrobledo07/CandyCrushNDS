@@ -40,7 +40,7 @@
 @;		R0 = 1 si hay una secuencia, 0 en otro caso
 	.global hay_secuencia
 hay_secuencia:
-		push {r1-r10, lr}
+		push {r1-r11, lr}
 		mov r1, #0                  @; Índex files (i)
 		mov r2, #0                  @; Índex columnes (j)
 		mov r5, #ROWS
