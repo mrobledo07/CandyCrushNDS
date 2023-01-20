@@ -1,8 +1,8 @@
 @;=                                                               		=
 @;=== candy1_secu.s: rutinas para detectar y elimnar secuencias 	  ===
 @;=                                                             	  	=
-@;=== Programador tarea 1C: xxx.xxx@estudiants.urv.cat				  ===
-@;=== Programador tarea 1D: yyy.yyy@estudiants.urv.cat				  ===
+@;=== Programador tarea 1C: alex.casanova@estudiants.urv.cat				  ===
+@;=== Programador tarea 1D: alex.casanova@estudiants.urv.cat				  ===
 @;=                                                           		   	=
 
 
@@ -40,10 +40,82 @@
 @;		R0 = 1 si hay una secuencia, 0 en otro caso
 	.global hay_secuencia
 hay_secuencia:
-		push {lr}
+		push {r1-r10, lr}
+		mov r1, #0                  @; Índex files (i)
+		mov r2, #0                  @; Índex columnes (j)
+		mov r5, #ROWS
+		mov r6, #COLUMNS
+		mov r10, #0                 @; Resultats de cuenta_repeticiones
+		.LForFila:
+		cmp r1, r5
+		beq .LFiForFila
+		.LForColumna:
+		cmp r2, r6
+		beq .LFiForColumna
+		mla r7, r1, r6, r2
+		ldrb r8, [r0, r7]           @; Contingut de la posició (i, j) de la matriu
 		
+		cmp r8, #0
+		ble .Lif2                   @; Casella buida
 		
-		pop {pc}
+		cmp r8, #7                  
+		beq .Lif2                   @; Bloc sòlid
+		
+		cmp r8, #8
+		beq .Lif2                   @; Casella buida
+		
+		cmp r8, #15
+		beq .Lif2                   @; Espai buit
+		
+		cmp r8, #16
+		beq .Lif2                   @; Casella buida
+		
+		cmp r8, #23
+		bge .Lif2                   @; Entrada "invàlida"
+		
+		sub r9, r5, #1
+		cmp r1, r9
+		bge .Lif1
+		
+		mov r3, #1                  @; Orientació sud de la rutina cuenta_repeticiones
+		mov r4, r0                  @; Matriu a R4
+		bl cuenta_repeticiones
+		mov r10, r0                  
+		mov r0, r4                  @; Recuperem la matriu
+		
+		.Lif1:
+		cmp r10, #3
+		bge .LFiForFila
+		
+		sub r11, r6, #1
+		cmp r2, r11
+		bge .Lif2
+		mov r3, #0                  @; Orientació est de la rutina cuenta_repeticiones
+		mov r4, r0                  @; Matriu a R4
+		bl cuenta_repeticiones
+		mov r10, r0
+		mov r0, r4                  @; Recuperem la matriu
+		
+		.Lif2:
+		cmp r10, #3
+		bge .LFiForFila
+		add r2, #1
+		b .LForFila
+		
+		.LFiForColumna:
+		add r1, #1                  @; i++
+		mov r2, #0                  @; j = 0
+		b .LForFila
+		
+		.LFiForFila:
+		mov r0, #1
+		cmp r10, #3
+		bge .LFiRutina
+		mov r0, #0
+		
+		.LFiRutina:
+		
+		pop {r1-r11, pc}
 
 
 
