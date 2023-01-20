@@ -12,7 +12,7 @@
 #define COLUMNS	9
 #define DFIL	(24-ROWS*2)				// desplazamiento vertical de filas
 
-#define MAXLEVEL	9					// nivel màximo (niveles 0..MAXLEVEL-1)
+#define MAXLEVEL	11					// nivel màximo (niveles 0..MAXLEVEL-1)
 
 #define PUNT_SEC3	30					// puntos secuencia de 3 elementos
 #define PUNT_SEC4	60					// puntos secuencia de 4 elementos
@@ -47,6 +47,7 @@ extern void copia_mapa(char mat[][COLUMNS], int num_map);
 	// candy1_init.s //
 extern void inicializa_matriz(char matriz[][COLUMNS], int num_mapa);	// 1A
 extern void recombina_elementos(char matriz[][COLUMNS]);				// 1B
+
 
 	// candy1_secu.s //
 extern int  hay_secuencia(char matriz[][COLUMNS]);						// 1C
