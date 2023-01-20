@@ -16,7 +16,7 @@
 	update_spr:	.hword	0			@;1 -> actualizar sprites
 		.global timer0_on
 	timer0_on:	.hword	0 			@;1 -> timer0 en marcha, 0 -> apagado
-@;	divFreq0: .hword	?			@;divisor de frecuencia inicial para timer 0
+	divFreq0:   .hword 5728			@;divisor de frecuencia inicial para timer 0
 
 
 @;-- .bss. variables (globales) no inicializadas ---
@@ -37,16 +37,19 @@
 @;Tarea 2H: actualiza el desplazamiento del fondo 3
 	.global rsi_vblank
 rsi_vblank:
-		push {lr}
+		push {r0-r2, lr}
 		
 @;Tareas 2Ea
-		ldr r0, =update_spr
-		ldrh r1, [r0]
+		ldr r2, =update_spr
+		ldrh r1, [r2]
 		cmp r1, #0
 		beq .LnoActualizar
+		mov r0, #0x07000000
+		ldr r1, =n_sprites
+		ldr r1, [r1]
 		bl SPR_actualizarSprites()
 		mov r1, #0
-		strh r1, [r0]
+		strh r1, [r2]
 		
 		.LnoActualizar:
 
@@ -56,7 +59,7 @@ rsi_vblank:
 @;Tarea 2Ha
 
 		
-		pop {pc}
+		pop {r0-r2, pc}
 
 
 
@@ -68,10 +71,28 @@ rsi_vblank:
 @;		R0 = init; si 1, restablecer divisor de frecuencia original divFreq0
 	.global activa_timer0
 activa_timer0:
-		push {lr}
+		push {r0, r1, lr}
 		
+		@; falta ajustar frecuencia de entrada y activaciones varias en registro TIMER0_CR 
+		@; y falta indicar divisor de frecuencia mediante registro TIMER0_DATA
+		@; a parte de acabar la lógica de la tarea
 		
-		pop {pc}
+		mov r0, #1
+		ldr r1, =timer0_on
+		strh r0, [r1]
+		
+		cmp r0, #0
+		beq .LnoModificar
+		ldr r0, =divFreq0
+		ldrh r0, [r0]
+		ldr r1, =divF0
+		strh r0, [r1]
+		ldr r1, =TIMER0_DATA
+		strh r0, [r1]
+		
+		.LnoModificar:
+		
+		pop {r0, r1, pc}
 
 
 @;TAREA 2Ec;
