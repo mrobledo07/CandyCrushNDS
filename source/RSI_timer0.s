@@ -43,13 +43,13 @@ rsi_vblank:
 		ldr r2, =update_spr
 		ldrh r1, [r2]
 		cmp r1, #0
-		beq .LnoActualizar
-		mov r0, #0x07000000
+		beq .LnoActualizar				@; si update_spr != 0 -> actualizar sprites
+		mov r0, #0x07000000				@; r0 = 0x0700 0000 (dirección base para los sprites (Object Attribute Memory) en el procesador gráfico principal)
 		ldr r1, =n_sprites
-		ldr r1, [r1]
+		ldr r1, [r1]					@; r1 = n_sprites
 		bl SPR_actualizarSprites()
 		mov r1, #0
-		strh r1, [r2]
+		strh r1, [r2]					@; update_spr = 0 (variable update_spr a 0 indica que no hay sprites para actualizar)
 		
 		.LnoActualizar:
 
@@ -73,24 +73,23 @@ rsi_vblank:
 activa_timer0:
 		push {r0, r1, lr}
 		
-		@; falta ajustar frecuencia de entrada y activaciones varias en registro TIMER0_CR 
-		@; y falta indicar divisor de frecuencia mediante registro TIMER0_DATA
-		@; a parte de acabar la lógica de la tarea
-		
-		mov r0, #1
-		ldr r1, =timer0_on
-		strh r0, [r1]
-		
 		cmp r0, #0
-		beq .LnoModificar
-		ldr r0, =divFreq0
-		ldrh r0, [r0]
+		beq .LnoRestablecerDivFreq	@; si init != 0, entonces se restablece el valor original del divisor de frecuencia
+		ldr r0, =divFreq0	
+		ldrh r0, [r0]				@; se guardará el valor del divisor de frecuencia en divF0 y en el registro de datos
 		ldr r1, =divF0
-		strh r0, [r1]
+		strh r0, [r1]				@; divF0 = divisor de frecuencia inicial
 		ldr r1, =TIMER0_DATA
-		strh r0, [r1]
+		rsb r0, r0, #0				@; r0 = divisor_frecuencia_inicial * (-1)
+		strh r0, [r1]				@; TIMER0_DATA = divisor de frecuencia inicial (negativo)
 		
-		.LnoModificar:
+		.LnoRestablecerDivFreq:		@; si init == 0, no se modifica el valor del divisor de frecuencia
+		ldr r0, =TIMER0_CR
+		mov r1, #0xC3
+		strh r1, [r0]				@; TIMER0_CR = bits 0 y 1 -> 11 (frecuencia entrada = 32728), bits 6 y 7 -> 11 (se activa el timer y las interrupciones)
+		ldr r0, =timer0_on
+		mov r1, #1	
+		strh r1, [r0]				@; timer0_on = 1 (variable timer0_on a 1 indica que el timer está activado)
 		
 		pop {r0, r1, pc}
 
@@ -99,10 +98,15 @@ activa_timer0:
 @;desactiva_timer0(); rutina para desactivar el timer 0.
 	.global desactiva_timer0
 desactiva_timer0:
-		push {lr}
+		push {r0, r1, lr}
+		ldr r0, =TIMER0_CR
+		mov r1, #0
+		strh r1, [r0]			@; TIMER0_CR = 0x00 -> todos los bits a 0 (incluídos los bits Start/Stop y IRQ Enable)
+			
+		ldr r0, =timer0_on
+		strh r1, [r0]			@; timer0_on = 0 (variable timer0_on  a 0 indica que el timer está desactivado)
 		
-		
-		pop {pc}
+		pop {r0, r1, pc}
 
 
 
@@ -118,6 +122,48 @@ desactiva_timer0:
 	.global rsi_timer0
 rsi_timer0:
 		push {lr}
+		ldr r0, =vect_elem		@; r0 = dirección base del array vect_elem
+		mov r1, #0				@; r1 = 0 (índice para recorrer el array vect_elem)
+		ldr r2, =n_sprites		
+		ldr r2, [r2]			@; r2 = n_sprites (límite del array)
+		
+		.Lbucle
+		ldrb r3, [r0]
+		cmp r3, #0
+		ble .LfiBucle
+		sub r3, #1
+		strb r3, [r0]
+		ldrb r3, [r0, #3]		@; r3 = atributo vx del elemento
+		cmp r3, #0
+		bne .LmoverHorizontal
+		ldrb r3, [r0, #4]		@; r3 = atributo vy del elemento
+		cmp r3, #0
+		bne .LmoverVertical
+		b .LfiBucle
+		
+		.LmoverHorizontal:
+		ldrb r4, [r0, #1]		@; r4 = atributo px del elemento
+		add r4, r3
+		strb r4, [r0, #1]
+		b .LfiBucle
+		
+		.LmoverVertical:
+		ldrb r4, [r0, #2]		@; r4 = atributo py del elemento
+		add r4, r3
+		strb r4, [r0, #2]
+	
+		ldr r3, =update_spr
+		mov r4, #1
+		strh r4, [r3]
+		
+		ldr r3, =divF0
+		ldrh r4, [r3]
+		mov r4, r4, lsr #1		@; r4 = r4/2 (disminuye el divisor de frecuencia en un factor de 2)
+		
+		
+		.LfiBucle:
+			
+		
 		
 		
 		pop {pc}
