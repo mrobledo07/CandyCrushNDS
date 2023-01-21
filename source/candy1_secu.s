@@ -99,7 +99,7 @@ hay_secuencia:
 		.Lif2:
 		cmp r10, #3
 		bge .LFiForFila
-		add r2, #1
+		add r2, #1                  @; j++
 		b .LForFila
 		
 		.LFiForColumna:
@@ -133,6 +133,33 @@ hay_secuencia:
 	.global elimina_secuencias
 elimina_secuencias:
 		push {lr}
+		mov r2, #0                  @; Índex files (i)
+		mov r3, #0                  @; Índex columnes (j)
+		mov r5, #ROWS
+		mov r6, #COLUMNS
+		mov r7, #0                  @; 0 a col·locar a la posició (i, j) de la matriu de marques
+		
+		.LForFila:
+		cmp r2, r5
+		beq .LFiForFila
+		
+		.LForColumna:
+		cmp r3, r6
+		beq .LFiForColumna
+		
+		mla r8, r2, r6, r3          
+		strb r7, [r1, r8]            @; Matriu de marques[i][j] = 0
+		add r3, #1                   @; j++
+		b .LForColumna
+		
+		.LFiForColumna:
+		add r2, #1                   @; i++
+		mov r3, #0                   @; j = 0
+		b .LForFila
+		
+		.LFiForFila:
+		
+		
 		
 		
 		pop {pc}
