@@ -132,7 +132,7 @@ hay_secuencia:
 @;		R1 = dirección de la matriz de marcas
 	.global elimina_secuencias
 elimina_secuencias:
-		push {lr}
+		push {r2-r11, lr}
 		mov r2, #0                  @; Índex files (i)
 		mov r3, #0                  @; Índex columnes (j)
 		mov r5, #ROWS
@@ -158,11 +158,74 @@ elimina_secuencias:
 		b .LForFila
 		
 		.LFiForFila:
+		bl marcar_horizontales
+		bl marcar_verticales
 		
+		mov r2, #0                   @; Índex files (i)
+		mov r3, #0                   @; Índex columnes (j)                  
+		mov r4, #8                   @; 8 a col·locar si hi ha element amb gelatina doble
 		
+		.LForFila2:
+		cmp r2, r5
+		beq .LFiForFila2
 		
+		.LForColumna2:
+		cmp r3, r6
+		beq .LFiForColumna2
 		
-		pop {pc}
+		mla r8, r2, r6, r3
+		ldrb r9, [r0, r8]            @; Contingut de la posició (i, j) de la matriu del joc.
+		
+		mla r10, r2, r6, r3
+		ldrb r11, [r1, r10]          @; Contingut de la posició (i, j) de la matriu de marques.
+		
+		cmp r11, #0                  @; Torna al principi del bucle si matriu de marques[i][j] == 0 (no hi ha seqüència)
+		addeq r3, #1
+		beq .LForColumna2
+		
+		cmp r9, #0                   @; Torna al principi del bucle si matriu[i][j] <= 0  (Casella buida)
+		addls r3, #1
+		bls .LForColumna2
+		
+		cmp r9, #7                   @; Torna al principi del bucle si matriu[i][j] == 7  (Bloc sòlid)
+		addeq r3, #1
+		beq .LForColumna2
+		
+		cmp r9, #8                   @; Torna al principi del bucle si matriu[i][j] == 8  (Gel. buida)
+		addeq r3, #1 
+		beq .LForColumna2
+		
+		cmp r9, #15                  @; Torna al principi del bucle si matriu[i][j] == 15 (espai buit)
+		addeq r3, #1
+		beq .LForColumna2
+		
+		cmp r9, #16                  @; Torna al principi del bucle si matriu[i][j] == 16 (Gel. doble buida)
+		addeq r3, #1
+		beq .LForColumna2
+		
+		cmp r9, #17                  @; Amb les restriccions anteriors, matriu[i][j]<17 implica element simple o element simple amb gelatina simple  
+		bhs .LGelDoble               @; matriu[i][j] > 17 implica element simple amb gelatina doble
+		
+		strb r7, [r0, r8]            @; matriu[i][j] = 0
+		add r3, #1
+		b .LForColumna2
+		
+		LGelDoble:
+		cmp r9, #23                  @; Torna al principi del bucle si matriu[i][j] >= 23 (El valor màxim és 22)
+		addhs r3, #1
+		bhs .LForColumna2
+		
+		strb r4, [r0, r8]            @; matriu[i][j] = 8
+		add r3, #1                   @; j++
+		b .LForColumna2
+		
+		.LFiForColumna2:
+		add r2, #1
+		mov r3, #0
+		b .LForFila2
+		
+		.LFiForFila:
+		pop {r2-r11, pc}
 
 
 	
