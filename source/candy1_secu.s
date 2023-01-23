@@ -292,7 +292,7 @@ marcar_horizontales:
 		bhs .LForColumna            @; Torna al principi del bucle si matriu[i][j] >= 23  (El màxim és 22)
 		
 		mov r0, r4                  @; Recuperem la matriu del joc
-        mov r3, #1                  @; Orientació "est" a la rutina cuenta_repeticiones
+        mov r3, #0                  @; Orientació "est" a la rutina cuenta_repeticiones
 		
 		bl cuenta_repeticiones      @; Retorna a R0 el nombre de repeticions d'un element
 		mov r11, r0
@@ -351,10 +351,137 @@ marcar_horizontales:
 @;		R0 = dirección base de la matriz de juego
 @;		R1 = dirección de la matriz de marcas
 marcar_verticales:
-		push {lr}
+		push {r2-r12, lr}
+		mov r4, r0
+		mov r5, r1
+		mov r1, #0                  @; Índex files (i)
+		mov r2, #0                  @; Índex columnes (j)
+		mov r6, #ROWS
+		mov r7, #COLUMNS
 		
+		ldrb r8, =num_sec
 		
-		pop {pc}
+		.LForColumna:
+		cmp r2, r7
+		beq .LFiForColumna
+		
+		.LForFila:
+		cmp r1, r6
+		beq .LFiForFila
+		
+		mla r9, r1, r7, r2
+		ldrb r10, [r4, r9]
+		
+		cmp r10, #0
+		addls r1, #1
+		bls .LForFila
+		
+		cmp r10, #7
+		addeq r1, #1
+		bls .LForFila
+		
+		cmp r10, #8
+		addeq r1, #1
+		beq .LForFila
+		
+		cmp r10, #15
+		addeq r1, #1
+		beq .LForFila
+		
+		cmp r10, #16
+		addeq r1, #1
+		beq .LForFila
+		
+		cmp r10, #23
+		addhs r1, #1
+		bhs .LForFila
+		
+		mov r0, r4
+		mov r3, #1
+		bl cuenta_repeticiones 
+		
+		mov r10, r0                   @; aux
+		mov r11, r0                   @; aux 2
+		cmp r10, #3
+		
+		blo .LRep
+		
+		mov r0, #0
+		.LWhile:
+		cmp r10, 0
+		beq .LFiWhile
+		cmp r0, #1
+		beq .LFiWhile
+		
+		mov r12, #0
+		add r12, r10, r1
+		sub r12, #1
+		
+		mla r9, r12, r7, r2
+		ldrb r12, [r5, r9]
+		
+		cmp r12, #0
+		moveq r0, #1
+		
+		sub r10, #1
+		b .LWhile
+		
+		.LFiWhile:
+		
+		cmp r0, #1
+		bne .LFiWhile2
+		add r8, #1
+	    mov r10, r11
+		
+		.LWhile2:
+		cmp r10, #0
+		beq .LRep
+		
+		mov r12, #0
+		add r12, r10, r1
+		sub r12, #1
+		
+		mla r9, r12, r7, r2
+		strb r8, [r9, r5]
+		sub r10, #1
+		b .LWhile2
+		
+		.LFiWhile2:
+		
+		mov r0, r11
+		
+		.LWhile3:
+		cmp r0, #0
+		beq .LRep
+		
+		mov r12, #0
+		add r12, r0, r1
+		sub r12, #1
+		
+		mla r9, r12, r7, r2
+		ldrb r9, [r5, r9]
+		
+		mov r12, #0
+		add r12, r10, r1
+		sub r12, #1
+		
+		mla r12, r12, r7, r1		
+		strb r9, [r5, r12]
+		
+		sub r0, #1
+		b .LWhile3
+		
+		.LRep:
+		add r1, r11
+		b .LForFila
+		
+		.LFiForFila:
+		mov r1, #0
+		add r2, #1
+		b .LForColumna
+		
+		.LFiForColumna:
+		pop {r2-r12, pc}
 
 
 
