@@ -132,7 +132,7 @@ hay_secuencia:
 @;		R1 = dirección de la matriz de marcas
 	.global elimina_secuencias
 elimina_secuencias:
-		push {r2-r11, lr}
+		push {r2-r10, lr}
 		mov r2, #0                  @; Índex files (i)
 		mov r3, #0                  @; Índex columnes (j)
 		mov r5, #ROWS
@@ -175,11 +175,9 @@ elimina_secuencias:
 		
 		mla r8, r2, r6, r3
 		ldrb r9, [r0, r8]            @; Contingut de la posició (i, j) de la matriu del joc.
+		ldrb r10, [r1, r8]           @; Contingut de la posició (i, j) de la matriu de marques.
 		
-		mla r10, r2, r6, r3
-		ldrb r11, [r1, r10]          @; Contingut de la posició (i, j) de la matriu de marques.
-		
-		cmp r11, #0                  @; Torna al principi del bucle si matriu de marques[i][j] == 0 (no hi ha seqüència)
+		cmp r10, #0                  @; Torna al principi del bucle si matriu de marques[i][j] == 0 (no hi ha seqüència)
 		addeq r3, #1
 		beq .LForColumna2
 		
@@ -204,7 +202,7 @@ elimina_secuencias:
 		beq .LForColumna2
 		
 		cmp r9, #17                  @; Amb les restriccions anteriors, matriu[i][j]<17 implica element simple o element simple amb gelatina simple  
-		bhs .LGelDoble               @; matriu[i][j] > 17 implica element simple amb gelatina doble
+		bhs .LGelDoble               @; matriu[i][j] >= 17 implica element simple amb gelatina doble
 		
 		strb r7, [r0, r8]            @; matriu[i][j] = 0
 		add r3, #1
@@ -219,13 +217,15 @@ elimina_secuencias:
 		add r3, #1                   @; j++
 		b .LForColumna2
 		
+		
+		
 		.LFiForColumna2:
 		add r2, #1
 		mov r3, #0
 		b .LForFila2
 		
 		.LFiForFila:
-		pop {r2-r11, pc}
+		pop {r2-r10, pc}
 
 
 	
@@ -247,10 +247,89 @@ elimina_secuencias:
 @;		R0 = dirección base de la matriz de juego
 @;		R1 = dirección de la matriz de marcas
 marcar_horizontales:
-		push {lr}
+		push {r2-r12, lr}
+		mov r4, r0                  @; R4: Matriu del joc
+		mov r5, r1                  @; R5: Matriu de marques
+		mov r1, #0                  @; Índex files (i)
+		mov r2, #0                  @; Índex columnes (j)
+		mov r6, #0                  @; num_sec
+		mov r7, #ROWS
+		mov r8, #COLUMNS
 		
+		.LForFila:
+		cmp r1, r7
+		beq .LFiForFila
 		
-		pop {pc}
+		.LForColumna: 
+		cmp r2, r8
+		beq .FiForColumna
+		
+		mla r9, r1, r8, r2
+		ldrb r10, [r4, r9]          @; Contingut de la posició (i, j) de la matriu del joc
+		
+		cmp r10, #0
+		addls r2, #1
+		bls .LForColumna            @; Torna al principi del bucle si matriu[i][j] <= 0  (Casella buida)
+		
+		cmp r10, #7
+		addeq r2, #1
+		beq .LForColumna            @; Torna al principi del bucle si matriu[i][j] == 7  (Bloc sòlid)
+		
+		cmp r10, #8
+		addeq r2, #1
+		beq .LForColumna            @; Torna al principi del bucle si matriu[i][j] == 8  (Gel. buida)
+		
+		cmp r10, #15
+		addeq r2, #1
+		beq .LForColumna            @; Torna al principi del bucle si matriu[i][j] == 15  (Espai buit)
+		
+		cmp r10, #16
+		addeq r2, #1
+		beq .LForColumna            @; Torna al principi del bucle si matriu[i][j] == 16  (Gel. doble buida)
+		
+		cmp r10, #23
+		addhs r2, #1
+		bhs .LForColumna            @; Torna al principi del bucle si matriu[i][j] >= 23  (El màxim és 22)
+		
+		mov r0, r4                  @; Recuperem la matriu del joc
+        mov r3, #1                  @; Orientació "est" a la rutina cuenta_repeticiones
+		
+		bl cuenta_repeticiones      @; Retorna a R0 el nombre de repeticions d'un element
+		mov r11, r0
+		cmp r0, #3
+		blo .LFiWhile
+		
+		add r6, #1                  @; num_sec++
+		
+		.Lwhile:
+		cmp r0, #0
+		beq .LFiWhile
+		
+		mov r12, #0
+		add r12, r2, r0 
+		sub r12, #1                 @; j + repeticions - 1
+		
+		mla r9, r1, r8, r12
+		strb r6, [r9, r5]           @; Matriu de marques[i][j+repeticions-1] = num_sec
+		sub r0, #1                  @; repeticions--
+		b LWhile
+		
+		.LFiWhile:
+		add r2, r2, r11             @; j = j + repeticions (per no repetir el procés havent detectat repeticions)
+		b .LForColumna
+		
+		.LFiForColumna:
+		add r1, #1                  @; i++
+		mov r2, #0                  @; j = 0
+		b .LForFila
+		
+		.LFiForFila:
+		mov r0, r4
+		mov r1, r5
+		mov r2, #0
+		ldrb r2, =num_sec           @; R2 apunta a num_sec
+		strb r6, [r2]               @; Guardem el valor de num_sec
+		pop {r2-r12, pc}
 
 
 
