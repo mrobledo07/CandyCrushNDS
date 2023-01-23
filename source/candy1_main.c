@@ -2,14 +2,11 @@
 
 	$ candy1_main.c $
 
-	Programa principal para la práctica de Computadores: candy-crash para NDS
-	(2º curso de Grado de Ingeniería Informática - ETSE - URV)
+	Test rutina 1D
 	
 	Analista-programador: santiago.romani@urv.cat
-	Programador 1: xxx.xxx@estudiants.urv.cat
-	Programador 2: yyy.yyy@estudiants.urv.cat
-	Programador 3: zzz.zzz@estudiants.urv.cat
-	Programador 4: uuu.uuu@estudiants.urv.cat
+	Programador 1: alex.casanova@estudiants.urv.cat
+
 
 ------------------------------------------------------------------------------*/
 #include <nds.h>
@@ -25,7 +22,7 @@ int level = 0;					// nivel del juego (nivel inicial = 0)
 int points;						// contador global de puntos
 int movements;					// número de movimientos restantes
 int gelees;						// número de gelatinas restantes
-
+char mat_mar[ROWS][COLUMNS];    // matriz de marcas
 
 
 /* actualizar_contadores(code): actualiza los contadores que se indican con el
@@ -43,25 +40,15 @@ void actualizar_contadores(int code)
 	if (code & 8) printf("\x1b[37m\x1b[2;28H %d ", gelees);
 }
 
-
-
-
 int main(void)
 {
-	consoleDemoInit();			// inicialización de pantalla de texto
-	printf("candyNDS (prueba tarea 1C)\n");
+    consoleDemoInit();
+	copia_mapa(matrix, level);
+	printf("CandyNDS (prueba tarea 1D)");
 	printf("\x1b[38m\x1b[1;0H  nivel:");
 	actualizar_contadores(1);
-
-	do							// bucle principal de pruebas
+	do
 	{
-		copia_mapa(matrix, level);		// sustituye a inicializa_matriz()
-		escribe_matriz(matrix);
-		if (hay_secuencia(matrix))			// si hay secuencias
-			printf("\x1b[39m\x1b[3;0H hay secuencia: SI");
-		else
-			printf("\x1b[39m\x1b[3;0H hay secuencia: NO");
-		retardo(5);
 		printf("\x1b[38m\x1b[3;19H (pulse A/B)");
 		do
 		{	swiWaitForVBlank();
@@ -69,11 +56,19 @@ int main(void)
 		} while (!(keysHeld() & (KEY_A | KEY_B)));
 		printf("\x1b[3;0H                               ");
 		retardo(5);
-		if (keysHeld() & KEY_A)			// si pulsa 'A',
-		{								// pasa a siguiente nivel
-			level = (level + 1) % MAXLEVEL;
-			actualizar_contadores(1);
+		if(keysHeld() & KEY_A)          // Si pulsa A muestra la matriz con los elementos eliminados
+		{
+		   elimina_secuencias(matrix, mat_mar);
+		   escribe_matriz(matrix);
 		}
-	} while (1);
-	return(0);
+		if(keysHeld() & KEY_B)          // Si pulsa B pasa al siguiente nivel
+		{
+		    level = (level + 1) % MAXLEVEL;
+			actualizar_contadores(1);
+			copia_mapa(matrix, level);
+		    escribe_matriz(matrix);
+		}
+
+	}while(1);
+	return (0);
 }

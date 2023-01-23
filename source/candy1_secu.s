@@ -139,32 +139,6 @@ elimina_secuencias:
 		mov r6, #COLUMNS
 		mov r7, #0                  @; 0 a col·locar a la posició (i, j) de la matriu de marques
 		
-		.LForFila:
-		cmp r2, r5
-		beq .LFiForFila
-		
-		.LForColumna:
-		cmp r3, r6
-		beq .LFiForColumna
-		
-		mla r8, r2, r6, r3          
-		strb r7, [r1, r8]            @; Matriu de marques[i][j] = 0
-		add r3, #1                   @; j++
-		b .LForColumna
-		
-		.LFiForColumna:
-		add r2, #1                   @; i++
-		mov r3, #0                   @; j = 0
-		b .LForFila
-		
-		.LFiForFila:
-		bl marcar_horizontales
-		bl marcar_verticales
-		
-		mov r2, #0                   @; Índex files (i)
-		mov r3, #0                   @; Índex columnes (j)                  
-		mov r4, #8                   @; 8 a col·locar si hi ha element amb gelatina doble
-		
 		.LForFila2:
 		cmp r2, r5
 		beq .LFiForFila2
@@ -173,58 +147,84 @@ elimina_secuencias:
 		cmp r3, r6
 		beq .LFiForColumna2
 		
+		mla r8, r2, r6, r3          
+		strb r7, [r1, r8]            @; Matriu de marques[i][j] = 0
+		add r3, #1                   @; j++
+		b .LForColumna2
+		
+		.LFiForColumna2:
+		add r2, #1                   @; i++
+		mov r3, #0                   @; j = 0
+		b .LForFila2
+		
+		.LFiForFila2:
+		bl marcar_horizontales
+		bl marcar_verticales
+		
+		mov r2, #0                   @; Índex files (i)
+		mov r3, #0                   @; Índex columnes (j)                  
+		mov r4, #8                   @; 8 a col·locar si hi ha element amb gelatina doble
+		
+		.LForFila3:
+		cmp r2, r5
+		beq .LFiForFila3
+		
+		.LForColumna3:
+		cmp r3, r6
+		beq .LFiForColumna3
+		
 		mla r8, r2, r6, r3
 		ldrb r9, [r0, r8]            @; Contingut de la posició (i, j) de la matriu del joc.
 		ldrb r10, [r1, r8]           @; Contingut de la posició (i, j) de la matriu de marques.
 		
 		cmp r10, #0                  @; Torna al principi del bucle si matriu de marques[i][j] == 0 (no hi ha seqüència)
 		addeq r3, #1
-		beq .LForColumna2
+		beq .LForColumna3
 		
 		cmp r9, #0                   @; Torna al principi del bucle si matriu[i][j] <= 0  (Casella buida)
 		addls r3, #1
-		bls .LForColumna2
+		bls .LForColumna3
 		
 		cmp r9, #7                   @; Torna al principi del bucle si matriu[i][j] == 7  (Bloc sòlid)
 		addeq r3, #1
-		beq .LForColumna2
+		beq .LForColumna3
 		
 		cmp r9, #8                   @; Torna al principi del bucle si matriu[i][j] == 8  (Gel. buida)
 		addeq r3, #1 
-		beq .LForColumna2
+		beq .LForColumna3
 		
 		cmp r9, #15                  @; Torna al principi del bucle si matriu[i][j] == 15 (espai buit)
 		addeq r3, #1
-		beq .LForColumna2
+		beq .LForColumna3
 		
 		cmp r9, #16                  @; Torna al principi del bucle si matriu[i][j] == 16 (Gel. doble buida)
 		addeq r3, #1
-		beq .LForColumna2
+		beq .LForColumna3
 		
 		cmp r9, #17                  @; Amb les restriccions anteriors, matriu[i][j]<17 implica element simple o element simple amb gelatina simple  
 		bhs .LGelDoble               @; matriu[i][j] >= 17 implica element simple amb gelatina doble
 		
 		strb r7, [r0, r8]            @; matriu[i][j] = 0
 		add r3, #1
-		b .LForColumna2
+		b .LForColumna3
 		
-		LGelDoble:
+		.LGelDoble:
 		cmp r9, #23                  @; Torna al principi del bucle si matriu[i][j] >= 23 (El valor màxim és 22)
 		addhs r3, #1
-		bhs .LForColumna2
+		bhs .LForColumna3
 		
 		strb r4, [r0, r8]            @; matriu[i][j] = 8
 		add r3, #1                   @; j++
-		b .LForColumna2
+		b .LForColumna3
 		
 		
 		
-		.LFiForColumna2:
+		.LFiForColumna3:
 		add r2, #1
 		mov r3, #0
-		b .LForFila2
+		b .LForFila3
 		
-		.LFiForFila:
+		.LFiForFila3:
 		pop {r2-r10, pc}
 
 
@@ -256,40 +256,40 @@ marcar_horizontales:
 		mov r7, #ROWS
 		mov r8, #COLUMNS
 		
-		.LForFila:
+		.LForFila4:
 		cmp r1, r7
-		beq .LFiForFila
+		beq .LFiForFila4
 		
-		.LForColumna: 
+		.LForColumna4: 
 		cmp r2, r8
-		beq .FiForColumna
+		beq .LFiForColumna4
 		
 		mla r9, r1, r8, r2
 		ldrb r10, [r4, r9]          @; Contingut de la posició (i, j) de la matriu del joc
 		
 		cmp r10, #0
 		addls r2, #1
-		bls .LForColumna            @; Torna al principi del bucle si matriu[i][j] <= 0  (Casella buida)
+		bls .LForColumna4           @; Torna al principi del bucle si matriu[i][j] <= 0  (Casella buida)
 		
 		cmp r10, #7
 		addeq r2, #1
-		beq .LForColumna            @; Torna al principi del bucle si matriu[i][j] == 7  (Bloc sòlid)
+		beq .LForColumna4           @; Torna al principi del bucle si matriu[i][j] == 7  (Bloc sòlid)
 		
 		cmp r10, #8
 		addeq r2, #1
-		beq .LForColumna            @; Torna al principi del bucle si matriu[i][j] == 8  (Gel. buida)
+		beq .LForColumna4           @; Torna al principi del bucle si matriu[i][j] == 8  (Gel. buida)
 		
 		cmp r10, #15
 		addeq r2, #1
-		beq .LForColumna            @; Torna al principi del bucle si matriu[i][j] == 15  (Espai buit)
+		beq .LForColumna4            @; Torna al principi del bucle si matriu[i][j] == 15  (Espai buit)
 		
 		cmp r10, #16
 		addeq r2, #1
-		beq .LForColumna            @; Torna al principi del bucle si matriu[i][j] == 16  (Gel. doble buida)
+		beq .LForColumna4            @; Torna al principi del bucle si matriu[i][j] == 16  (Gel. doble buida)
 		
 		cmp r10, #23
 		addhs r2, #1
-		bhs .LForColumna            @; Torna al principi del bucle si matriu[i][j] >= 23  (El màxim és 22)
+		bhs .LForColumna4            @; Torna al principi del bucle si matriu[i][j] >= 23  (El màxim és 22)
 		
 		mov r0, r4                  @; Recuperem la matriu del joc
         mov r3, #0                  @; Orientació "est" a la rutina cuenta_repeticiones
@@ -301,7 +301,7 @@ marcar_horizontales:
 		
 		add r6, #1                  @; num_sec++
 		
-		.Lwhile:
+		.LWhile:
 		cmp r0, #0
 		beq .LFiWhile
 		
@@ -312,18 +312,18 @@ marcar_horizontales:
 		mla r9, r1, r8, r12
 		strb r6, [r9, r5]           @; Matriu de marques[i][j+repeticions-1] = num_sec
 		sub r0, #1                  @; repeticions--
-		b LWhile
+		b .LWhile
 		
 		.LFiWhile:
 		add r2, r2, r11             @; j = j + repeticions (per no repetir el procés havent detectat repeticions)
-		b .LForColumna
+		b .LForColumna4
 		
-		.LFiForColumna:
+		.LFiForColumna4:
 		add r1, #1                  @; i++
 		mov r2, #0                  @; j = 0
-		b .LForFila
+		b .LForFila4
 		
-		.LFiForFila:
+		.LFiForFila4:
 		mov r0, r4
 		mov r1, r5
 		mov r2, #0
@@ -361,79 +361,79 @@ marcar_verticales:
 		
 		ldrb r8, =num_sec
 		
-		.LForColumna:
-		cmp r2, r7
-		beq .LFiForColumna
+		.LForColumna5:              @; Es fa un recorregut columna per columna
+		cmp r2, r7 
+		beq .LFiForColumna5
 		
-		.LForFila:
+		.LForFila5:
 		cmp r1, r6
-		beq .LFiForFila
+		beq .LFiForFila5
 		
 		mla r9, r1, r7, r2
-		ldrb r10, [r4, r9]
+		ldrb r10, [r4, r9]          @; Posició (i, j) de la matriu de joc
 		
-		cmp r10, #0
+		cmp r10, #0                 
 		addls r1, #1
-		bls .LForFila
+		bls .LForFila5              @; Torna al principi del bucle si matriu[i][j] <= 0  (Casella buida)
 		
 		cmp r10, #7
 		addeq r1, #1
-		bls .LForFila
+		beq .LForFila5              @; Torna al principi del bucle si matriu[i][j] == 7  (Bloc sòlid)
 		
 		cmp r10, #8
 		addeq r1, #1
-		beq .LForFila
+		beq .LForFila5              @; Torna al principi del bucle si matriu[i][j] == 8  (Gel. simple)
 		
-		cmp r10, #15
+		cmp r10, #15                @; Torna al principi del bucle si matriu[i][j] == 15  (Espai buit)
 		addeq r1, #1
-		beq .LForFila
+		beq .LForFila5
 		
-		cmp r10, #16
+		cmp r10, #16                @; Torna al principi del bucle si matriu[i][j] == 16  (Gel. doble)
 		addeq r1, #1
-		beq .LForFila
+		beq .LForFila5
 		
-		cmp r10, #23
+		cmp r10, #23                @; Torna al principi del bucle si matriu[i][j] >= 23 (El màxim és 22)
 		addhs r1, #1
-		bhs .LForFila
+		bhs .LForFila5
 		
 		mov r0, r4
-		mov r3, #1
+		mov r3, #1                  @; Orientació "sud" a cuenta_repeticiones
 		bl cuenta_repeticiones 
 		
-		mov r10, r0                   @; aux
-		mov r11, r0                   @; aux 2
+		mov r10, r0                 @; Variable auxiliar = repeticions
+		mov r11, r0                 @; Variable auxiliar 2 = repeticions
 		cmp r10, #3
 		
 		blo .LRep
 		
 		mov r0, #0
-		.LWhile:
-		cmp r10, 0
-		beq .LFiWhile
+		.LWhile2:
+		cmp r10, #0
+		beq .LFiWhile2
 		cmp r0, #1
-		beq .LFiWhile
+		beq .LFiWhile2
 		
 		mov r12, #0
 		add r12, r10, r1
-		sub r12, #1
+		sub r12, #1                 @; i + repeticions - 1
 		
 		mla r9, r12, r7, r2
-		ldrb r12, [r5, r9]
+		ldrb r12, [r5, r9]          @; Contingut de Matriu de marques[i+rep.-1][j]
 		
 		cmp r12, #0
 		moveq r0, #1
 		
-		sub r10, #1
-		b .LWhile
+		sub r10, #1                
+		b .LWhile2
 		
-		.LFiWhile:
+		.LFiWhile2:
 		
 		cmp r0, #1
-		bne .LFiWhile2
+		bne .LFiWhile3
 		add r8, #1
 	    mov r10, r11
 		
-		.LWhile2:
+		.LWhile3:
 		cmp r10, #0
 		beq .LRep
 		
@@ -444,13 +444,13 @@ marcar_verticales:
 		mla r9, r12, r7, r2
 		strb r8, [r9, r5]
 		sub r10, #1
-		b .LWhile2
+		b .LWhile3
 		
-		.LFiWhile2:
+		.LFiWhile3:
 		
 		mov r0, r11
 		
-		.LWhile3:
+		.LWhile4:
 		cmp r0, #0
 		beq .LRep
 		
@@ -465,22 +465,26 @@ marcar_verticales:
 		add r12, r10, r1
 		sub r12, #1
 		
-		mla r12, r12, r7, r1		
+		
+		mul r12, r12, r7		
+		add r12, r12, r2
 		strb r9, [r5, r12]
 		
 		sub r0, #1
-		b .LWhile3
+		b .LWhile4
 		
 		.LRep:
-		add r1, r11
-		b .LForFila
+		add r1, r11                      @; I = I + repeticions (per no haver de tornar a aquella posició si s'han detectat repeticions)
+		b .LForFila5
 		
-		.LFiForFila:
-		mov r1, #0
-		add r2, #1
-		b .LForColumna
+		.LFiForFila5:
+		mov r1, #0                       @; i = 0
+		add r2, #1                       @; j++
+		b .LForColumna5
 		
-		.LFiForColumna:
+		.LFiForColumna5:
+		mov r0, r4
+		mov r1, r5
 		pop {r2-r12, pc}
 
 
