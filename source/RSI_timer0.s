@@ -47,7 +47,7 @@ rsi_vblank:
 		mov r0, #0x07000000				@; r0 = 0x0700 0000 (dirección base para los sprites (Object Attribute Memory) en el procesador gráfico principal)
 		ldr r1, =n_sprites
 		ldr r1, [r1]					@; r1 = n_sprites
-		bl SPR_actualizarSprites()
+		bl SPR_actualizarSprites
 		mov r1, #0
 		strh r1, [r2]					@; update_spr = 0 (variable update_spr a 0 indica que no hay sprites para actualizar)
 		
@@ -79,12 +79,12 @@ activa_timer0:
 		ldrh r0, [r0]				@; se guardará el valor del divisor de frecuencia en divF0 y en el registro de datos
 		ldr r1, =divF0
 		strh r0, [r1]				@; divF0 = divisor de frecuencia inicial
-		ldr r1, =TIMER0_DATA
+		ldr r1, =0x04000100			@; TIMER0_DATA = 0x0400 0100
 		rsb r0, r0, #0				@; r0 = divisor_frecuencia_inicial * (-1)
 		strh r0, [r1]				@; TIMER0_DATA = divisor de frecuencia inicial (negativo)
 		
 		.LnoRestablecerDivFreq:		@; si init == 0, no se modifica el valor del divisor de frecuencia
-		ldr r0, =TIMER0_CR
+		ldr r0, =0x04000102			@; TIMER0_CR = 0x0400 0102
 		mov r1, #0xC3
 		strh r1, [r0]				@; TIMER0_CR = bits 0 y 1 -> 11 (frecuencia entrada = 32728), bits 6 y 7 -> 11 (se activa el timer y las interrupciones)
 		ldr r0, =timer0_on
@@ -99,7 +99,7 @@ activa_timer0:
 	.global desactiva_timer0
 desactiva_timer0:
 		push {r0, r1, lr}
-		ldr r0, =TIMER0_CR
+		ldr r0, =0x04000102		@; TIMER0_CR = 0x0400 0102
 		mov r1, #0
 		strh r1, [r0]			@; TIMER0_CR = 0x00 -> todos los bits a 0 (incluídos los bits Start/Stop y IRQ Enable)
 			
@@ -125,45 +125,45 @@ rsi_timer0:
 		ldr r0, =vect_elem		@; r0 = dirección base del array vect_elem
 		mov r7, #0				@; r7 = 0 (índice para recorrer el array vect_elem)
 		ldr r6, =n_sprites		
-		ldr r6, [r6]			@; r6 = n_sprites (límite del array)
+		ldr r6, [r6]			@; r6 = n_sprites (límite que hay que recorrer del array)
 		ldr r3, =divFreq0
 		ldrh r5, [r3]
 		mov r5, r5, lsr #32		@; r5 = r5/2^32		(límite de aceleración del sprite)
+		mov r4, #0				@; r4 (1 si se ha realizado un movimiento, 0 en caso contrario)
 		
-		.Lbucle
-		ldrb r3, [r0]
+		.Lbucle:
+		ldsh r3, [r0, #ELE_II]
 		cmp r3, #0
-		ble .LfiBucle			@; if(r3 <= 0) b.LfiBucle
-		sub r3, #1				@; r3--
-		strb r3, [r0]			@; ii = r3 (se decrementa el valor del atributo ii)
-		ldrb r3, [r0, #3]		@; r3 = atributo vx del elemento
+		ble .LfiBucle				@; if(r3 <= 0) b.LfiBucle
+		sub r3, #1					@; r3--
+		strh r3, [r0, #ELE_II]		@; ii = r3 (se decrementa el valor del atributo ii)
+		ldsh r3, [r0, #ELE_VX]		@; r3 = atributo vx del elemento
 		cmp r3, #0
-		bne .LmoverHorizontal	@; if(r3 != 0) b .LmoverHorizontal (se moverá en diagonal)
-		ldrb r3, [r0, #4]		@; r3 = atributo vy del elemento
+		bne .LmoverHorizontal		@; if(r3 != 0) b .LmoverHorizontal 
+		ldsh r3, [r0, #ELE_VY]		@; r3 = atributo vy del elemento
 		cmp r3, #0
-		bne .LmoverVertical		@; if(r3 != 0) b .LmoverVertical
-		b .LfiBucle	
+		bne .LmoverVertical			@; if(r3 != 0) b .LmoverVertical
 		
 		.LmoverHorizontal:
-		ldrb r4, [r0, #1]		@; r4 = atributo px del elemento
-		add r4, r3				@; r4 = px+ vx
-		strb r4, [r0, #1]		@; vect_elem.px = r4
+		ldsh r4, [r0, #ELE_PX]		@; r4 = atributo px del elemento
+		add r4, r3					@; r4 = px+ vx
+		strh r4, [r0, #ELE_PX]		@; vect_elem.px = r4
 		@; si algún elemento se mueve en horizontal, después se mueve en vertical
 		@; ya que un elemento no puede moverse solo en horizontal, sino en diagonal o en vertical
-		ldrb r3, [r0, #4]		@; r3 = atributo vy del elemento						
+		ldsh r3, [r0, #ELE_VY]		@; r3 = atributo vy del elemento	
+		cmp r3, #0
+		beq .Lcontinuacion			@; if(r3 == 0) b .Lcontinuacion (no habrá movimiento vertical)
 		
 		.LmoverVertical:
-		ldrb r4, [r0, #2]		@; r4 = atributo py del elemento
-		add r4, r3				@; r4 = py + vy
-		strb r4, [r0, #2]		@; vect_elem.py = r4
+		ldsh r4, [r0, #ELE_PY]		@; r4 = atributo py del elemento
+		add r4, r3					@; r4 = py + vy
+		strh r4, [r0, #ELE_PY]		@; vect_elem.py = r4
 	
-		ldrb r1, [r0, #1]		@; r1 = atributo px (actualizado/nuevo) del elemento	
-		ldrb r2, [r0, #2]		@; r2 = atributo py (actualizado/nuevo) del elemento
-		bl SPR_moverSprite()
-		
-		ldr r3, =update_spr
-		mov r4, #1
-		strh r4, [r3]			@; update_spr = 1 (ya que se ha actualizado un sprite)
+		.Lcontinuacion:
+	
+		ldsh r1, [r0, #ELE_PX]		@; r1 = atributo px (actualizado/nuevo) del elemento	
+		ldsh r2, [r0, #ELE_PY]		@; r2 = atributo py (actualizado/nuevo) del elemento
+		bl SPR_moverSprite
 		
 		ldr r3, =divF0
 		ldrh r4, [r3]			@; r4 = divF0
@@ -172,22 +172,21 @@ rsi_timer0:
 		movhi r4, r5			@; if(r4 > r5) r4 = r5 (si se ha superado el límite de aceleración, r4 se establece en el límite)
 		strh r4, [r3]			@; divF0 = divF0/2 (para conseguir el efecto de aceleración)
 		
+		ldr r3, =update_spr
+		mov r4, #1
+		strh r4, [r3]			@; update_spr = 1 (ya que se ha actualizado un sprite)
 		
 		.LfiBucle:
+		cmp r4, #1
+		blne desactiva_timer0	@; si no ha habido movimiento, se desactiva el timer
+		bne .Lfinal				@; y si no ha habido movimiento, salta al final
 		add r7, #1
 		cmp r7, r6			
-		beq .Lfinal			@; if (i == n_sprites) b .Lfinal	(se ha recorrido todo el array)
-		mov r1, #1
-		add r0, r1, lsl #2
-		add r0, r1			@; r0 = r0 + 5 (así nos posicionamos en la siguiente posición del array vect_elem el cual en cada posición tiene 5 atributos de 1 byte cada uno)
+		beq .Lfinal			@; if (i == n_sprites) b .Lfinal	(se han recorrido los n_sprites del array)
+		add r0, #10			@; r0 = r0 + 10 (así nos posicionamos en la siguiente posición del array vect_elem el cual en cada posición tiene 5 atributos de 2 bytes cada uno)
 		b .Lbucle
 		
 		.Lfinal:
-		
-		ldr r3, =update_spr
-		ldrh r4, [r3]
-		cmp r4, #0
-		beq desactiva_timer0	 @; if (update_spr == 0) b desactiva_timer0
 		
 		pop {r0-r7, pc}
 
