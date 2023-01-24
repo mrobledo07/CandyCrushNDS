@@ -148,8 +148,6 @@ rsi_timer0:
 		ldsh r4, [r0, #ELE_PX]		@; r4 = atributo px del elemento
 		add r4, r3					@; r4 = px+ vx
 		strh r4, [r0, #ELE_PX]		@; vect_elem.px = r4
-		@; si algún elemento se mueve en horizontal, después se mueve en vertical
-		@; ya que un elemento no puede moverse solo en horizontal, sino en diagonal o en vertical
 		ldsh r3, [r0, #ELE_VY]		@; r3 = atributo vy del elemento	
 		cmp r3, #0
 		beq .Lcontinuacion			@; if(r3 == 0) b .Lcontinuacion (no habrá movimiento vertical)
