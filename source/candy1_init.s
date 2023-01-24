@@ -44,7 +44,7 @@
 @;		R1 = número de mapa de configuración
 	.global inicializa_matriz
 inicializa_matriz:
-		push {r1-r9, lr}		@;guardar registros utilizados
+		push {r0-r9, lr}		@;guardar registros utilizados
 		
 		ldr r5, =mapas		@; carga la direccion de la variable global mapas 
 		mov r4, #COLUMNS
@@ -96,7 +96,7 @@ inicializa_matriz:
 			cmp r1, #ROWS
 			blo .LFor1
 	
-		pop {r1-r9, pc}				@;recuperar registros y volver
+		pop {r0-r9, pc}				@;recuperar registros y volver
 
 
 
@@ -120,7 +120,7 @@ inicializa_matriz:
 @;		R0 = dirección base de la matriz de juego
 	.global recombina_elementos
 recombina_elementos:
-		push {r1-r11,lr}
+		push {r0-r11,lr}
 		ldr r5, =mat_recomb1
 		ldr r6, =mat_recomb2
 		mov r4, r0
@@ -246,7 +246,7 @@ recombina_elementos:
 			cmp r1, #ROWS
 			blo .LFor5
 				
-		pop {r1-r11,pc}
+		pop {r0-r11,pc}
 
 
 @;:::RUTINAS DE SOPORTE:::
