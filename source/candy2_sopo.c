@@ -197,8 +197,8 @@ int procesar_touchscreen(char mat[][COLUMNS],
 	}
 	escribe_matriz(mat);
 }
-*/
 
+*/
 
 /* intercambia_posiciones(*mat, p1X, p1Y, p2X, p2Y): intercambia los
 	elementos de las dos posiciones de la matriz que indican los parámetros,

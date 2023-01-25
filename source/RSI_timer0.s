@@ -101,7 +101,7 @@ desactiva_timer0:
 		push {r0, r1, lr}
 		ldr r0, =0x04000102		@; TIMER0_CR = 0x0400 0102
 		mov r1, #0
-		strh r1, [r0]			@; TIMER0_CR = 0x00 -> todos los bits a 0 (incluídos los bits Start/Stop y IRQ Enable)
+		strh r1, [r0]			@; TIMER0_CR = 0x0000 -> todos los bits a 0 (incluídos los bits Start/Stop y IRQ Enable)
 			
 		ldr r0, =timer0_on
 		strh r1, [r0]			@; timer0_on = 0 (variable timer0_on  a 0 indica que el timer está desactivado)
@@ -121,7 +121,12 @@ desactiva_timer0:
 @;  el efecto de aceleración (con un límite).
 	.global rsi_timer0
 rsi_timer0:
-		push {r0-r7, lr}
+		push {r0-r9, lr}
+		ldr r0, =cont
+		ldr r1, [r0]
+		add r1, #1
+		str r1, [r0]			@; cont++ (la variable global contador incrementa para saber cuantas veces se entra a la rsi)
+			
 		ldr r0, =vect_elem		@; r0 = dirección base del array vect_elem
 		mov r7, #0				@; r7 = 0 (índice para recorrer el array vect_elem)
 		ldr r6, =n_sprites		
@@ -129,7 +134,6 @@ rsi_timer0:
 		ldr r3, =divFreq0
 		ldrh r5, [r3]
 		mov r5, r5, lsr #32		@; r5 = r5/2^32		(límite de aceleración del sprite)
-		mov r4, #0				@; r4 (1 si se ha realizado un movimiento, 0 en caso contrario)
 		
 		.Lbucle:
 		ldsh r3, [r0, #ELE_II]
@@ -163,21 +167,11 @@ rsi_timer0:
 		ldsh r2, [r0, #ELE_PY]		@; r2 = atributo py (actualizado/nuevo) del elemento
 		bl SPR_moverSprite
 		
-		ldr r3, =divF0
-		ldrh r4, [r3]			@; r4 = divF0
-		mov r4, r4, lsr #1		@; r4 = r4/2 (disminuye el divisor de frecuencia en un factor de 2)
-		cmp r4, r5
-		movhi r4, r5			@; if(r4 > r5) r4 = r5 (si se ha superado el límite de aceleración, r4 se establece en el límite)
-		strh r4, [r3]			@; divF0 = divF0/2 (para conseguir el efecto de aceleración)
-		
 		ldr r3, =update_spr
 		mov r4, #1
 		strh r4, [r3]			@; update_spr = 1 (ya que se ha actualizado un sprite)
 		
 		.LfiBucle:
-		cmp r4, #1
-		blne desactiva_timer0	@; si no ha habido movimiento, se desactiva el timer
-		bne .Lfinal				@; y si no ha habido movimiento, salta al final
 		add r7, #1
 		cmp r7, r6			
 		beq .Lfinal			@; if (i == n_sprites) b .Lfinal	(se han recorrido los n_sprites del array)
@@ -185,8 +179,26 @@ rsi_timer0:
 		b .Lbucle
 		
 		.Lfinal:
+		ldr r4, =update_spr
+		ldrh r3, [r4]
+		cmp r3, #0
+		bleq desactiva_timer0	@; si no ha habido ningún movimiento se desactiva el timer
+		beq .LnoActualizarFreq
 		
-		pop {r0-r7, pc}
+		ldr r3, =divF0
+		ldrh r4, [r3]			@; r4 = divF0
+		mov r4, r4, lsr #1		@; r4 = r4/2 (disminuye el divisor de frecuencia en un factor de 2)
+		cmp r4, r5
+		movhi r4, r5			@; if(r4 > r5) r4 = r5 (si se ha superado el límite de aceleración, r4 se establece en el límite)	
+		strh r4, [r3]			@; divF0 = divF0/2 (para conseguir el efecto de aceleración)
+		rsb r4, r4, #0			@; divF0 = divF0 * (-1)
+		ldr r8, =0x04000100		@; TIMER0_DATA = 0x0400 0100
+		strh r4, [r8]			@; TIMER0_DATA = divisor de frecuencia actualizado (negativo)
+		
+		.LnoActualizarFreq:
+		
+		
+		pop {r0-r9, pc}
 
 
 

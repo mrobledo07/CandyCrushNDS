@@ -39,16 +39,24 @@
 @;		16+:	gelatina doble (a sumarle código de elemento)
 		.global mapas
 	mapas:
+		
+	@; mapa 0: intercambio de posiciones (cont = 65)
+		.byte 3,1,0,0,0,0,0,0
+		.byte 0,0,0,0,0,0,0,0
+		.byte 0,0,0,0,0,0,0,0
+		.byte 0,0,0,0,0,0,0,0
+		.byte 0,0,0,0,0,0,0,0
+		.byte 0,0,0,0,0,0,0,0
+		
+	@; mapa 1: intercambio de posiciones (cont = 33) ya que la posicion contigua esta vacía
+		.byte 3,0,0,0,0,0,0,0
+		.byte 0,0,0,0,0,0,0,0
+		.byte 0,0,0,0,0,0,0,0
+		.byte 0,0,0,0,0,0,0,0
+		.byte 0,0,0,0,0,0,0,0
+		.byte 0,0,0,0,0,0,0,0
 
-	@; mapa 0: todo aleatorio
-		.byte 0,0,0,0,0,0,0,0
-		.byte 0,0,0,0,0,0,0,0
-		.byte 0,0,0,0,0,0,0,0
-		.byte 0,0,0,0,0,0,0,0
-		.byte 0,0,0,0,0,0,0,0
-		.byte 0,0,0,0,0,0,0,0
-
-	@; mapa 1: paredes horizontales y verticales
+	@; mapa 2: paredes horizontales y verticales
 		.byte 0,0,7,7,0,0,0,0
 		.byte 0,0,0,0,0,0,0,0
 		.byte 0,7,7,7,7,7,0,0
@@ -56,7 +64,7 @@
 		.byte 0,7,0,0,0,7,7,7
 		.byte 0,7,0,0,0,0,0,0
 
-	@; mapa 2: huecos y bloques sólidos
+	@; mapa 3: huecos y bloques sólidos
 		.byte 15,15,7,15,0,0,0,0
 		.byte 0,15,15,7,15,0,0,0
 		.byte 0,0,0,0,0,15,0,0
@@ -64,7 +72,7 @@
 		.byte 0,0,0,0,2,1,2,15
 		.byte 15,0,15,15,1,2,1,1
 	
-	@; mapa 3: gelatinas simples
+	@; mapa 4: gelatinas simples
 		.byte 0,0,0,8,8,8,0,0
 		.byte 0,0,0,0,8,0,0,0
 		.byte 0,0,8,8,8,8,0,0
@@ -72,23 +80,23 @@
 		.byte 0,0,8,0,8,0,0,0
 		.byte 0,0,8,0,8,0,0,0
 
-	@; mapa 4: gelatinas dobles
+	@; mapa 5: gelatinas dobles
 		.byte 0,15,0,15,0,7,0,15
 		.byte 0,0,7,0,0,7,0,0
 		.byte 10,3,8,1,1,8,3,3
 		.byte 10,1,9,0,0,20,3,4
 		.byte 17,2,15,15,3,19,4,3
 		.byte 3,2,10,0,0,20,0,15
-
-	@; mapa 5: combinaciones en horizontal de 3, 4 y 5 elementos
+	
+	@; mapa 6: combinaciones en horizontal de 3, 4 y 5 elementos
 		.byte 1,1,1,15,2,2,2,2
 		.byte 3,3,3,3,3,15,7,7
 		.byte 4,1,4,4,4,4,15,7
 		.byte 1,4,4,2,6,3,7,0
 		.byte 5,2,2,15,5,5,5,5
 		.byte 6,5,5,2,5,6,6,6
-
-	@; mapa 6: combinaciones en vertical de 3, 4 y 5 elementos
+	
+	@; mapa 7: combinaciones en vertical de 3, 4 y 5 elementos
 		.byte 1,3,4,1,5,6,2,15
 		.byte 1,3,1,4,2,5,7,15
 		.byte 1,3,4,4,2,5,15,7
@@ -96,7 +104,7 @@
 		.byte 2,3,4,15,6,6,5,7
 		.byte 2,7,4,3,5,15,6,7
 
-	@; mapa 7: combinaciones cruzadas (hor/ver) de 5, 6 y 7 elementos
+	@; mapa 8: combinaciones cruzadas (hor/ver) de 5, 6 y 7 elementos
 		.byte 1,2,3,3,4,3,7,0
 		.byte 1,2,7,5,3,7,7,0
 		.byte 4,1,1,2,3,16,7,0
@@ -104,15 +112,13 @@
 		.byte 4,2,2,5,2,2,7,0
 		.byte 4,5,5,2,5,5,7,0
 		
-	@; mapa 8: no hay combinaciones ni secuencias
+	@; mapa 9: no hay combinaciones ni secuencias
 		.byte 1,2,3,3,7,3,15,15
 		.byte 1,2,7,5,3,7,15,15
 		.byte 7,1,1,2,3,9,15,15
 		.byte 1,4,20,10,9,6,15,15
 		.byte 6,18,22,5,6,2,15,15
 		.byte 12,5,4,3,11,5,15,15
-
-	@; etc.
 
 
 
