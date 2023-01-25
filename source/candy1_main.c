@@ -8,7 +8,7 @@
 	Analista-programador: santiago.romani@urv.cat
 	Programador 1: xxx.xxx@estudiants.urv.cat
 	Programador 2: yyy.yyy@estudiants.urv.cat
-	Programador 3: zzz.zzz@estudiants.urv.cat
+	Programador 3: victor.fosch@estudiants.urv.cat
 	Programador 4: uuu.uuu@estudiants.urv.cat
 
 ------------------------------------------------------------------------------*/
@@ -46,22 +46,19 @@ void actualizar_contadores(int code)
 
 /* Programa principal: control general del juego */
 /* ---------------------------------------------------------------- */
-/* candy1_main.c : función principal main() para test de tarea 1E 	*/
+/* candy1_main.c : función principal main() para test de tarea 1F 	*/
 /* ---------------------------------------------------------------- */
 #define NUMTESTS 14
-short nmap[] = {4, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 6, 6, 8};
-short posX[] = {0, 0, 0, 0, 4, 4, 4, 0, 0, 5, 4, 1, 1, 1};
-short posY[] = {2, 2, 2, 2, 4, 4, 4, 0, 0, 0, 4, 3, 3, 5};
-short cori[] = {0, 1, 2, 3, 0, 1, 2, 0, 3, 0, 0, 1, 3, 0};
-short resp[] = {1, 2, 1, 1, 2, 1, 1, 3, 1, 3, 5, 2, 4, 2};
+short nmap[] = {11, 10, 11, 4, 4, 4, 4, 5, 5, 5, 5, 6, 6, 8};
 
 int main(void)
 {
+	seed32 = time(NULL);
 	int ntest = 0;
-	int result;
+	int movimiento;
 
 	consoleDemoInit();			// inicialización de pantalla de texto
-	printf("candyNDS (prueba tarea 1E)\n");
+	printf("candyNDS (prueba tarea 1F)\n");
 	printf("\x1b[38m\x1b[1;0H  nivel:");
 	level = nmap[0];
 	actualizar_contadores(1);
@@ -69,25 +66,24 @@ int main(void)
 	escribe_matriz(matrix);
 	do							// bucle principal de pruebas
 	{
-		printf("\x1b[39m\x1b[2;0H test %d: posXY (%d, %d), c.ori %d",
-									ntest, posX[ntest], posY[ntest], cori[ntest]);
-		printf("\x1b[39m\x1b[3;0H resultado esperado: %d", resp[ntest]);
+		printf("\x1b[39m\x1b[2;0H test %d: bajada vertical", ntest);
 		
-		result = cuenta_repeticiones(matrix, posY[ntest], posX[ntest], cori[ntest]);
-		
-		printf("\x1b[39m\x1b[4;0H resultado obtenido: %d", result);
+		do
+		{
+			movimiento = baja_elementos(matrix);
+			retardo(20);
+			escribe_matriz(matrix);
+		} while(movimiento == 1);
+
 		retardo(5);
-		printf("\x1b[38m\x1b[5;19H (pulse A/B)");
+		printf("\x1b[38m\x1b[5;19H (pulse A)");
 		do
 		{	swiWaitForVBlank();
-			scanKeys();					// esperar pulsación tecla 'A' o 'B'
-		} while (!(keysHeld() & (KEY_A | KEY_B)));
-		printf("\x1b[2;0H                               ");
-		printf("\x1b[3;0H                               ");
-		printf("\x1b[4;0H                               ");
-		printf("\x1b[38m\x1b[5;19H            ");
+			scanKeys();					// esperar pulsación tecla 'A'
+		} while (!(keysHeld() & KEY_A));
+		
 		retardo(5);
-		if (keysHeld() & KEY_A)		// si pulsa 'A',
+		if (keysHeld() & KEY_A)		// si pulsa 'A'
 		{
 			ntest++;				// siguiente test
 			if ((ntest < NUMTESTS) && (nmap[ntest] != level))
