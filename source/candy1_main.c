@@ -8,7 +8,7 @@
 	Analista-programador: santiago.romani@urv.cat
 	Programador 1: miguel.robledo@estudiants.urv.cat
 	Programador 2: victor.fosch@estudiants.urv.cat
-	Programador 3: zzz.zzz@estudiants.urv.cat
+	Programador 3: alex.casanova@estudiants.urv.cat
 	Programador 4: uuu.uuu@estudiants.urv.cat
 
 ------------------------------------------------------------------------------*/
