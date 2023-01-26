@@ -1,35 +1,35 @@
 /*------------------------------------------------------------------------------
 
-	$ candy1_main.c $
+	$ candy2_main.c $
 
-	Programa principal para la prÃ¡ctica de Computadores: candy-crash para NDS
-	(2Âº curso de Grado de IngenierÃ­a InformÃ¡tica - ETSE - URV)
+	Programa principal para la práctica de Computadores: candy-crash para NDS
+	(2º curso de Grado de Ingeniería Informática - ETSE - URV)
 	
 	Analista-programador: santiago.romani@urv.cat
 	Programador 1: miguel.robledo@estudiants.urv.cat
-	Programador 2: victor.fosch@estudiants.urv.cat
-	Programador 3: alex.casanova@estudiants.urv.cat
+	Programador 2: alex.casanova@estudiants.urv.cat
+	Programador 3: victor.fosch@estudiants.urv.cat
 	Programador 4: uuu.uuu@estudiants.urv.cat
 
 ------------------------------------------------------------------------------*/
 #include <nds.h>
 #include <stdio.h>
 #include <time.h>
-#include <candy1_incl.h>
+#include <candy2_incl.h>
 
 
 /* variables globales */
 char matrix[ROWS][COLUMNS];		// matriz global de juego
-int seed32;						// semilla de nÃºmeros aleatorios
+int seed32;						// semilla de números aleatorios
 int level = 0;					// nivel del juego (nivel inicial = 0)
 int points;						// contador global de puntos
-int movements;					// nÃºmero de movimientos restantes
-int gelees;						// nÃºmero de gelatinas restantes
+int movements;					// número de movimientos restantes
+int gelees;						// número de gelatinas restantes
 
 
 
 /* actualizar_contadores(code): actualiza los contadores que se indican con el
-	parÃ¡metro 'code', que es una combinaciÃ³n binaria de booleanos, con el
+	parámetro 'code', que es una combinación binaria de booleanos, con el
 	siguiente significado para cada bit:
 		bit 0:	nivel
 		bit 1:	puntos
@@ -44,6 +44,28 @@ void actualizar_contadores(int code)
 }
 
 
+/* inicializa_interrupciones(): configura las direcciones de las RSI y los bits
+	de habilitación (enable) del controlador de interrupciones para que se
+	puedan generar las interrupciones requeridas.*/ 
+void inicializa_interrupciones()
+{
+	irqSet(IRQ_VBLANK, rsi_vblank);
+	TIMER0_CR = 0x00;  		// inicialmente los timers no generan interrupciones
+	irqSet(IRQ_TIMER0, rsi_timer0);		// cargar direcciones de las RSI
+	irqEnable(IRQ_TIMER0);				// habilitar la IRQ correspondiente
+	TIMER1_CR = 0x00;
+	irqSet(IRQ_TIMER1, rsi_timer1);
+	irqEnable(IRQ_TIMER1);
+	TIMER2_CR = 0x00;
+	irqSet(IRQ_TIMER2, rsi_timer2);
+	irqEnable(IRQ_TIMER2);
+	TIMER3_CR = 0x00;
+	irqSet(IRQ_TIMER3, rsi_timer3);
+	irqEnable(IRQ_TIMER3);
+}
+
+
+
 
 /* Programa principal: control general del juego */
 int main(void)
@@ -51,24 +73,32 @@ int main(void)
 	int lapse = 0;				// contador de tiempo sin actividad del usuario
 	int change = 0;				// =1 indica que ha habido cambios en la matriz
 	int falling = 0;			// =1 indica que los elementos estan bajando
+	int fall_init = 1;			// =1 inicializa la frecuencia de movimiento
 	int initializing = 1;		// =1 indica que hay que inicializar un juego
-	int mX, mY, dX, dY;			// variables de detecciÃ³n de pulsaciones
+	int mX, mY, dX, dY;			// variables de detección de pulsaciones
 
-	seed32 = time(NULL);		// fijar semilla de nÃºmeros aleatorios
-	consoleDemoInit();			// inicializaciÃ³n de pantalla de texto
-	printf("candyNDS (version 1: texto)\n");
+	seed32 = time(NULL);		// fijar semilla de números aleatorios
+	init_grafA();
+	inicializa_interrupciones();
+
+	consoleDemoInit();			// inicialización de pantalla de texto
+	printf("candyNDS (version 2: graficos)\n");
 	printf("\x1b[38m\x1b[1;0H  nivel:");
 	printf("\x1b[39m\x1b[2;0H puntos:");
 	printf("\x1b[38m\x1b[1;15H movimientos:");
 	printf("\x1b[37m\x1b[2;15H   gelatinas:");
+	printf("\x1b[38m\x1b[3;0H despl.fondo (tecla Y): no");
 	actualizar_contadores(15);
 
 	do							// bucle principal del juego
 	{
-		if (initializing)		//////	SECCIÃ“N DE INICIALIZACIÃ“N	//////
+		if (initializing)		//////	SECCIÓN DE INICIALIZACIÓN	//////
 		{
 			inicializa_matriz(matrix, level);
 			//copia_mapa(matrix, 8);
+			genera_sprites(matrix);
+			genera_mapa1(matrix);
+			genera_mapa2(matrix);
 			escribe_matriz(matrix);
 			retardo(5);
 			initializing = 0;
@@ -82,23 +112,30 @@ int main(void)
 				points += calcula_puntuaciones(mat_mar);
 				escribe_matriz(matrix);
 				falling = 1;							// iniciar bajada
+				fall_init = 1;
 			}
 			else change = 1;					//sino, revisar estado matriz
 			movements = max_mov[level];
 			gelees = contar_gelatinas(matrix);
 			actualizar_contadores(15);
 		}
-		else if (falling)		//////	SECCIÃ“N BAJADA DE ELEMENTOS	//////
+		else if (falling)		//////	SECCIÓN BAJADA DE ELEMENTOS	//////
 		{
 			falling = baja_elementos(matrix);	// realiza la siguiente bajada
-			retardo(4);
-			if (!falling)						// si no estÃ¡ bajando
+			if (falling)
+			{									// si hay bajadas
+				activa_timer0(fall_init);		// activar timer de movimientos
+				while (timer0_on) swiWaitForVBlank();	// espera final
+				fall_init = 0;					// continuar acelerando
+			}
+			else								// si no está bajando
 			{
 				if (hay_secuencia(matrix))		// si hay secuencias
 				{
 					elimina_secuencias(matrix, mat_mar);	// eliminarlas
 					points += calcula_puntuaciones(mat_mar);
-					falling = 1;							// volver a bajar
+					falling = 1;				// volver a bajar
+					fall_init = 1;				// con velocidad inicial
 					gelees = contar_gelatinas(matrix);
 					actualizar_contadores(10);
 				}
@@ -106,7 +143,7 @@ int main(void)
 			}
 			escribe_matriz(matrix);			// visualiza bajadas o eliminaciones
 		}
-		else					//////	SECCIÃ“N DE JUGADAS	//////
+		else					//////	SECCIÓN DE JUGADAS	//////
 		{
 			if (procesar_touchscreen(matrix, &mX, &mY, &dX, &dY))
 			{
@@ -118,23 +155,24 @@ int main(void)
 					borra_puntuaciones();
 					points += calcula_puntuaciones(mat_mar);
 					falling = 1;
+					fall_init = 1;
 					movements--;
 					gelees = contar_gelatinas(matrix);
 					actualizar_contadores(14);
 					lapse = 0;
 				}
 				else						// si no es posible,
-				{	retardo(5);				// deshacer el cambio
+				{							// deshacer el cambio
 					intercambia_posiciones(matrix, mX, mY, dX, dY);
 				}
 				escribe_matriz(matrix);	// muetra las eliminaciones o el retorno
 			}
 			while (keysHeld() & KEY_TOUCH)		// esperar a liberar la
-			{	swiWaitForVBlank();				// pantalla tÃ¡ctil
+			{	swiWaitForVBlank();				// pantalla táctil
 				scanKeys();
 			}
 		}
-		if (!falling)			//////	SECCIÃ“N DE DEPURACIÃ“N	//////
+		if (!falling)			//////	SECCIÓN DE DEPURACIÓN	//////
 		{
 			swiWaitForVBlank();
 			scanKeys();
@@ -147,9 +185,18 @@ int main(void)
 			{	movements = 0;				// repetir
 				change = 1;
 			}
-			lapse++;
+			else if (keysHeld() & KEY_Y)	// activar o desactivar desplazam.
+			{	if (timer3_on) desactiva_timer3();	// imagen del fondo 3
+				else activa_timer3();
+				printf("\x1b[38m\x1b[3;24H%s",(timer3_on ? "si" : "no"));
+				while (keysHeld() & KEY_Y)		// esperar liberación tecla Y
+				{	swiWaitForVBlank();	
+					scanKeys();
+				}
+			}
+			lapse++;					// incrementar paso del tiempo
 		}
-		if (change)				//////	SECCIÃ“N CAMBIO DE NIVEL	//////
+		if (change)				//////	SECCIÓN CAMBIO DE NIVEL	//////
 		{
 			change = 0;
 			if (((points >= 0) && (gelees == 0))
@@ -165,30 +212,31 @@ int main(void)
 				printf("\x1b[39m\x1b[8;20H (pulse A)");
 				do
 				{	swiWaitForVBlank();
-					scanKeys();					// esperar pulsaciÃ³n tecla 'A'
+					scanKeys();					// esperar pulsación tecla 'A'
 				} while (!(keysHeld() & KEY_A));
 				printf("\x1b[6;20H           ");
 				printf("\x1b[8;20H           ");	// borra mensajes
 				
 				if (((points >= 0) && (gelees == 0)) || (movements == 0))
 				{
-					if (((points >= 0) && (gelees == 0))
-							&& (level < MAXLEVEL-1))
-						level++;				// incrementa nivel
+					if ((points >= 0) && (gelees == 0))
+						level = (level + 1) % MAXLEVEL;	// incrementa nivel
 					printf("\x1b[2;8H      ");	// borra puntos anteriores
 					initializing = 1;			// passa a inicializar nivel
 				}
 				else
 				{
 					recombina_elementos(matrix);
+					activa_timer0(1);		// activar timer de movimientos
+					while (timer0_on) swiWaitForVBlank();	// espera final
 					escribe_matriz(matrix);
-					change = 1;					// forzar nueva verificaciÃ³n
+					change = 1;					// forzar nueva verificación
 				}								// de combinaciones
 				borra_puntuaciones();
 			}
 			lapse = 0;
 		}
-		else if (lapse >= 192)	//////	SECCIÃ“N DE SUGERENCIAS	//////
+		else if (lapse >= 192)	//////	SECCIÓN DE SUGERENCIAS	//////
 		{
 			if (lapse == 192) 		// a los 8 segundos sin actividad (aprox.)
 			{
@@ -197,14 +245,11 @@ int main(void)
 			}
 			if ((lapse % 64) == 0)		// cada segundo (aprox.)
 			{
-				oculta_elementos(matrix);
-				escribe_matriz(matrix);
-				retardo(5);
-				muestra_elementos(matrix);
-				escribe_matriz(matrix);
+				reducir_elementos(matrix);
+				aumentar_elementos(matrix);
 			}
 		}
 	} while (1);				// bucle infinito
 	
-	return(0);					// nunca retornarÃ¡ del main
+	return(0);					// nunca retornará del main
 }
