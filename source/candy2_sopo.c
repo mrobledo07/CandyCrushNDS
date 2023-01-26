@@ -62,7 +62,7 @@ void escribe_matriz(char mat[][COLUMNS])
 
 /* contar_gelatinas(*mat): calcula cuantas gelatinas quedan en la matriz de
 	juego, contando 1 para gelatines simples y 2 para gelatinas dobles */
-/*int contar_gelatinas(char mat[][COLUMNS])
+int contar_gelatinas(char mat[][COLUMNS])
 {
 	int i, j, value, count = 0;
 
@@ -82,7 +82,7 @@ void escribe_matriz(char mat[][COLUMNS])
 	
 	return(count);
 }
-*/
+
 
 /* retardo(dsecs): pone el programa en pausa durante el número de décimas de
 	segundo que indica el parámetro */
@@ -160,7 +160,7 @@ int procesar_touchscreen(char mat[][COLUMNS],
 	posiciones, lo cual provocará que la función 'escribe_matriz()' muestre
 	un carácter '_' (elemento oculto).
 	inicia el timer 1 para reproducir el efecto de escalado de los sprites. */
-/*void reducir_elementos(char mat[][COLUMNS])
+void reducir_elementos(char mat[][COLUMNS])
 {
 	int i,x,y;
 	
@@ -176,13 +176,13 @@ int procesar_touchscreen(char mat[][COLUMNS],
 	activa_timer1(0);
 	while (timer1_on) swiWaitForVBlank();
 }
-*/
+
 
 /* aumentar_elementos(*mat): restablece los códigos de los 3 elementos contenidos
 	en las posiciones de la matriz de juego indicadas en el vector 'pos_sug[6]',
 	según el contenido del vector 'ele_sug[3]'.
 	inicia el timer 1 para reproducir el efecto de escalado de los sprites. */
-/*void aumentar_elementos(char mat[][COLUMNS])
+void aumentar_elementos(char mat[][COLUMNS])
 {
 	int i,x,y;
 	
@@ -198,7 +198,7 @@ int procesar_touchscreen(char mat[][COLUMNS],
 	escribe_matriz(mat);
 }
 
-*/
+
 
 /* intercambia_posiciones(*mat, p1X, p1Y, p2X, p2Y): intercambia los
 	elementos de las dos posiciones de la matriz que indican los parámetros,

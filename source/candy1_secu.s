@@ -466,7 +466,7 @@ marcar_verticales:
 		sub r12, #1
 		
 		
-		mul r12, r7, r12	
+		mul r12, r7, r12		
 		add r12, r12, r2
 		strb r9, [r5, r12]
 		
