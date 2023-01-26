@@ -120,7 +120,7 @@ inicializa_matriz:
 @;		R0 = dirección base de la matriz de juego
 	.global recombina_elementos
 recombina_elementos:
-		push {r0-r11,lr}
+		push {r0-r12,lr}
 		ldr r5, =mat_recomb1
 		ldr r6, =mat_recomb2
 		mov r4, r0
@@ -195,7 +195,11 @@ recombina_elementos:
 			beq .Lsecuencia_infinita
 			strb r0, [r4, r10]					@; guardamos el resultado en mat_recomb2[i]
 			strb r0, [r6, r10]					@; guardamos el resultado en matriu_joc[i]
+			
 			mov r0, #0
+			mov r3, #COLUMNS
+			mul r7, r3							@; fórmula para calcular el desplazamiento sabiendo la posición bidimensional
+			add r7, r12							@; FÓRMULA -> desplazamiento = (fila*COLUMNS)+columna
 			strb r0, [r5, r7]					@; ponemos a 0 la posición que hayamos escogido de mat_recomb1[aleatorio] aun que no se haya usado
 			b .LFinal
 			
@@ -207,12 +211,18 @@ recombina_elementos:
 				beq .Lsecuencia_infinita		@; si ha detectado una secuencia 405 veces para la misma posición en mat_recomb2, se ha entrado en bucle infinito, generamos un elemento aleatorio entre 0 y 6
 			
 			.Lcodigo_elemento:
-				mov r7, #COLUMNS
-				mov r8, #ROWS
-				mul r0, r7, r8		@; cargamos en r0 el rango para generar un numero aleatorio
+				mov r0, #COLUMNS
 				bl mod_random
-				mov r7, r0			@; posicion aleatoria de mat_recomb1 en r7
-				ldrb r8, [r5, r7]	@; cargamos el valor de una posicion aleatoria de mat_recomb1 en r8
+				mov r12, r0					@; r12 = columna aleatoria dentro del rango 0 a COLUMNS-1
+				
+				mov r0, #ROWS
+				bl mod_random
+				mov r7, r0					@; r7 = fila aleatoria dentro del rango 0 a ROWS-1
+				
+				mov r3, #COLUMNS
+				mul r0, r7, r3			@; fórmula para calcular el desplazamiento sabiendo la posición bidimensional
+				add r0, r12					@; FÓRMULA -> desplazamiento = (fila*COLUMNS)+columna
+				ldrb r8, [r5, r0]	@; cargamos el valor de una posicion aleatoria de mat_recomb1 en r8
 				cmp r8, #0			@; si el valor que hemos cargado es 0, repetimos, hasta que no sea 0
 				beq .Lcodigo_elemento
 				
@@ -234,8 +244,22 @@ recombina_elementos:
 				beq .Lhay_secuencia	@; si hay secuencia, restituimos el valor anterior en la posicion actual de mat_recomb2, y volvemos a coger una pos. aleatoria de mat_recomb1
 				
 			mov r9, #0
-			strb r9, [r5, r7]	@; fijamos a 0 el valor que hemos usado de mat_recomb1
-			strb r8, [r4, r10] 	@; asignamos el valor de mat_recomb2[i] en la matriz_de_juego[i]
+			mov r3, #COLUMNS
+			mul r0, r7, r3		@; fórmula para calcular el desplazamiento sabiendo la posición bidimensional
+			add r0, r12				@; FÓRMULA -> desplazamiento = (fila*COLUMNS)+columna
+			strb r9, [r5, r0]		@; fijamos a 0 el valor que hemos usado de mat_recomb1
+			strb r8, [r4, r10] 		@; asignamos el valor de mat_recomb2[i] en la matriz_de_juego[i]
+			
+			mov r8, r2			@; guardamos temporalmente el valor de r2 (indice de columna actual) en r8
+			mov r9, r1			@; guardamos temporalmente el valor de r1 (indice de fila actual) en r9
+			
+			mov r0, r7			@; r0 -> fila origen
+			mov r1, r12			@; r1 -> columna origen
+			mov r2, r1			@; r2 -> fila destino
+			mov r3, r2			@; r3 -> columna destino
+			bl activa_elemento	@; se reubica elemento en la matriz, activamos movimiento del sprite ((FASE2))
+			mov r1, r9			@; recuperamos valor de r1
+			mov r2, r8			@; recuperamos valor de r2
 		
 		.LFinal:
 			add r10, #1
@@ -246,7 +270,7 @@ recombina_elementos:
 			cmp r1, #ROWS
 			blo .LFor5
 				
-		pop {r0-r11,pc}
+		pop {r0-r12,pc}
 
 
 @;:::RUTINAS DE SOPORTE:::
