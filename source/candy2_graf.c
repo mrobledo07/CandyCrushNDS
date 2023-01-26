@@ -60,8 +60,21 @@ void genera_sprites(char mat[][COLUMNS])
 	sólidos o espacios vacíos sin elementos, excluyendo sólo los huecos.*/
 void genera_mapa2(char mat[][COLUMNS])
 {
-
-
+    for(int i = 0; i < ROWS; i++)
+	{
+	    for(int j = 0; j < COLUMNS; j++)
+		{
+		    if(mat[i][j] == 15)
+			    fija_metabaldosa((u16 *) 0x06000800, i, j, 19);
+			else
+			{
+			    if((i+j) % 2 == 0)
+				    fija_metabaldosa((u16 *) 0x06000800, i, j, 17);
+				else
+				    fija_metabaldosa((u16 *) 0x06000800, i, j, 17);
+			}
+		}
+	}
 }
 
 
@@ -102,7 +115,7 @@ void ajusta_imagen3(int ibg)
 				generando el fondo 3 y fijando la transparencia entre fondos.*/
 void init_grafA()
 {
-	//int bg1A, bg2A, bg3A;
+	int bg1A, bg2A, bg3A;
 
 	videoSetMode(MODE_3_2D | DISPLAY_SPR_1D_LAYOUT | DISPLAY_SPR_ACTIVE);
 	
@@ -112,7 +125,8 @@ void init_grafA()
 
 // Tareas 2Ba y 2Ca:
 	// reservar banco E para fondos 1 y 2, a partir de 0x06000000
-
+	vramSetBankE(VRAM_E_MAIN_BG);
+	
 // Tarea 2Da:
 	// reservar bancos A y B para fondo 3, a partir de 0x06020000
 
@@ -129,7 +143,8 @@ void init_grafA()
 
 // Tarea 2Ba:
 	// inicializar el fondo 2 con prioridad 2
-
+ bg2A = bgInit(2, BgType_Text8bpp, BgSize_T_256x256, 0, 0);
+	bgSetPriority(bg2A, 2);
 
 
 // Tarea 2Ca:
@@ -142,7 +157,9 @@ void init_grafA()
 	// partir de la dirección de memoria correspondiente a los gráficos de
 	// las baldosas para los fondos 1 y 2, cargar los colores de paleta
 	// correspondientes contenidos en la variable BaldosasPal[]
-
+	decompress(BaldosasTiles, bgGetGfxPtr(bg1A), LZ77Vram);
+   decompress(BaldosasTiles, bgGetGfxPtr(bg2A), LZ77Vram);
+	dmaCopy(BaldosasPal, BG_PALETTE, sizeof(BaldosasPal));
 
 	
 // Tarea 2Da:
