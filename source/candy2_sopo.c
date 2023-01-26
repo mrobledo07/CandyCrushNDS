@@ -61,7 +61,7 @@ void escribe_matriz(char mat[][COLUMNS])
 
 
 /* contar_gelatinas(*mat): calcula cuantas gelatinas quedan en la matriz de
-	juego, contando 1 para gelatines simples y 2 para gelatinas dobles */
+	juego, contando 1 para gelatines simples y 2 para gelatinas dobles 
 int contar_gelatinas(char mat[][COLUMNS])
 {
 	int i, j, value, count = 0;
@@ -81,7 +81,7 @@ int contar_gelatinas(char mat[][COLUMNS])
 	else desactiva_timer2();
 	
 	return(count);
-}
+}*/
 
 
 /* retardo(dsecs): pone el programa en pausa durante el número de décimas de
@@ -203,7 +203,7 @@ void aumentar_elementos(char mat[][COLUMNS])
 /* intercambia_posiciones(*mat, p1X, p1Y, p2X, p2Y): intercambia los
 	elementos de las dos posiciones de la matriz que indican los parámetros,
 	conservando las características de gelatina en las posiciones originales.
-	inicia el timer 0 para reproducir el movimiento de los sprites.*/
+	inicia el timer 0 para reproducir el movimiento de los sprites.
 void intercambia_posiciones(char mat[][COLUMNS],
 											int p1X, int p1Y, int p2X, int p2Y)
 {
@@ -216,7 +216,7 @@ void intercambia_posiciones(char mat[][COLUMNS],
 	activa_elemento(p2Y,p2X,p1Y,p1X);
 	activa_timer0(1);
 	while (timer0_on) swiWaitForVBlank();
-}
+}*/
 
 
 

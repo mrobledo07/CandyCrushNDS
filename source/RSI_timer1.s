@@ -97,6 +97,10 @@ desactiva_timer1:
 	.global rsi_timer1
 rsi_timer1:
 		push {r0-r2, lr}
+		ldr r0, =cont                  @; Comptador per 
+		ldr r1, [r0]
+		add r1, #1
+		str r1, [r0]
 		ldr r0, =escNum
 		ldrh r1, [r0]
 		add r1, #1                     @; escNum++

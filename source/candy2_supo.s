@@ -361,7 +361,7 @@ elimina_gelatina:
 		mov r2, r1
 		mov r1, r0
 		mov r0, #0x06000000
-		bl fijar_metabaldosa
+		bl fija_metabaldosa
 		
 		pop {r0-r5,pc}
 
