@@ -177,8 +177,6 @@ baja_verticales:
 		mov r6, r3		
 		.Lelem_superior:
 			sub r6, r2						@;R6 = direccio de la posició superior a l'element buit
-			cmp r6, r9						
-			blo .Lfila_superior				@;Si R6 < R9 l'element superior es torba al limit superior de la matriu
 			ldrb r7, [r6]					@;R7 = valor del element superior a la posicio buida
 			cmp r7, #7					
 			beq .Lrecorre_matV				@;si R7 es un bloc sòlid no cambia res i segueix recorren la matriu
@@ -191,13 +189,18 @@ baja_verticales:
 			mov r7, r7, lsr #3
 			mov r7, r7, lsl	#3	
 			strb r7, [r6]					@;Eliminem el valor del element i guardem el resultat (possible gelatina)
+			cmp r6, r4						
+			blo .Lfila_superior				@;Si R6 < R9 l'element superior es torba al limit superior de la matriu
 			mov r0, #1						@;Hi ha hagut moviment
 			b .Lrecorre_matV
 		
 	.Lfila_superior:
 		tst r5, #7
 		bne .Lrecorre_matV					@;Si el valor es diferent de 0, 8 o 16 no afegim element
-		add r5, #3							@;Aqui ficara un element aleatori
+		mov r0, #6
+		bl mod_random
+		add r0, #1
+		add r5, r0
 		strb r5, [r3]
 		mov r0, #1							@;Hi ha hagut moviment
 		b .Lrecorre_matV
@@ -216,76 +219,74 @@ baja_verticales:
 @;	Resultado:
 @;		R0 = 1 indica que se ha realizado algún movimiento. 
 baja_laterales:
-		push {r4-r6, lr}
+		push {r1-r10, lr}
 		
 		mov r1, #ROWS
 		mov r2, #COLUMNS
-		mov r10, #8						@;R10 = comptador per a vigilar els límits laterals
+		mov r10, #9						@;R10 = comptador per a vigilar els límits laterals
 		add r9, r4, r2					@;R9 = primera posició de la segona fila
 		mla r3, r1, r2, r4				@;R3 = direccio de l'última posició de la matriu + 1
 		
 	.Lrecorre_matL:
+		sub r10, #1
+		cmp r10, #0
+		moveq r10, #9					@;Si R10 = 0, estem al final d'una fila per tant reestableix el comptador	
 		sub r3, #1
-		cmp r3, r4						@;Si R3 < R4 ens trobem fora de la matriu
-		blo .Lfora_matL
-		cmp r3, r9
-		blo .Lfora_matL					@;Si R3 < R9 ens trobem a la fila superior de la matriu, ja no podem baixar elements
+		cmp r3, r4						
+		blo .Lfora_matL					@;Si R3 < R4 ens trobem fora de la matriu
 		ldrb r5, [r3]					@;R5 = valor del element a la posicio actual
 		tst r5, #7						@;tst amb els tres bits baixos, per comprovar si hi ha un 0, 8 o 16
-		beq .Lbaixa_elemL
-		sub r10, #1
-		cmp r10, #-1
-		moveq r10, #8					@;Si R10 = -1, estem al final d'una fila per tant reestableix el comptador			
+		beq .Ldiagonal_dret		
 		b .Lrecorre_matL
 	
-	.Lbaixa_elemL:
+	.Ldiagonal_dret:
 		mov r6, r3	
 		sub r6, r2						@;R6 = direcció de la posició superior a l'element buit
-		.Ldiagonal_dret:
-			cmp r10, #8
-			beq .Ldiagonal_esq				@;Si R10 = 8, estem al lateral dret per tant nomes mirarem l'element esquerre
-			add r6, #1
-			ldrb r7, [r6]
-			tst r7, #7
-			bne .Ldiagonal_esq
-			cmp r7, #7
-			beq .Ldiagonal_esq
-			cmp r7, #15
-			beq .Ldiagonal_esq
-			mov r8, r7
-			and r8, #7
-			add r8, r5						@;R8 = valor filtrar del element superior + possible gelatina inferior
-			strb r8, [r3]
-			mov r7, r7, lsr #3
-			mov r7, r7, lsl #3
-			strb r7, [r6]					@;Eliminem el valor del element i guardem el resultat
-			mov r0, #1						@;Hi ha hagut moviment
-			sub r6, #1
+		cmp r10, #9
+		beq .Ldiagonal_esq				@;Si R10 = 9, estem al lateral dret per tant nomes mirarem l'element esquerre
+		add r6, #1
+		ldrb r7, [r6]
+		tst r7, #7
+		beq .Ldiagonal_esq
+		cmp r7, #7
+		beq .Ldiagonal_esq
+		cmp r7, #15
+		beq .Ldiagonal_esq
+		mov r8, r7
+		and r8, #7
+		add r8, r5						@;R8 = valor filtrar del element superior + possible gelatina inferior
+		strb r8, [r3]
+		mov r7, r7, lsr #3
+		mov r7, r7, lsl #3
+		strb r7, [r6]					@;Eliminem el valor del element i guardem el resultat
+		mov r0, #1						@;Hi ha hagut moviment
 			
-		.Ldiagonal_esq:
-			cmp r10, #0
-			beq .Lrecorre_matL				@;Si R10 = 0, estem al lateral esquerre per tant no mirarem l'element esquerre
-			sub r6, #1
-			ldrb r7, [r6]
-			tst r7, #7
-			bne .Lrecorre_matL
-			cmp r7, #7
-			beq .Lrecorre_matL
-			cmp r7, #15
-			beq .Lrecorre_matL
-			mov r8, r7
-			and r8, #7
-			add r8, r5						@;R8 = valor filtrar del element superior + possible gelatina inferior
-			strb r8, [r3]
-			mov r7, r7, lsr #3
-			mov r7, r7, lsl	#3	
-			strb r7, [r6]					@;Eliminem el valor del element i guardem el resultat
-			mov r0, #1						@;Hi ha hagut moviment
-			b .Lrecorre_matL
+	.Ldiagonal_esq:
+		mov r6, r3	
+		sub r6, r2						@;R6 = direcció de la posició superior a l'element buit
+		cmp r10, #0
+		beq .Lrecorre_matL				@;Si R10 = 0, estem al lateral esquerre per tant no mirarem l'element esquerre
+		sub r6, #1
+		ldrb r7, [r6]
+		tst r7, #7
+		beq .Lrecorre_matL
+		cmp r7, #7
+		beq .Lrecorre_matL
+		cmp r7, #15
+		beq .Lrecorre_matL
+		mov r8, r7
+		and r8, #7
+		add r8, r5						@;R8 = valor filtrar del element superior + possible gelatina inferior
+		strb r8, [r3]
+		mov r7, r7, lsr #3
+		mov r7, r7, lsl	#3	
+		strb r7, [r6]					@;Eliminem el valor del element i guardem el resultat
+		mov r0, #1						@;Hi ha hagut moviment
+		b .Lrecorre_matL
 	
 	.Lfora_matL:
 		
-		pop {r4-r6, pc}
+		pop {r1-r10, pc}
 
 
 
