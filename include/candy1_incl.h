@@ -39,9 +39,13 @@ extern void oculta_elementos(char mat[][COLUMNS]);
 extern void muestra_elementos(char mat[][COLUMNS]);
 extern void intercambia_posiciones(char mat[][COLUMNS],
 										int p1X, int p1Y, int p2X, int p2Y);
+										
+extern int detectar_combo(int nhor, int nver, char mensaje[]); 
 extern int calcula_puntuaciones(char mar[][COLUMNS]);
 extern void borra_puntuaciones();
 extern void copia_mapa(char mat[][COLUMNS], int num_map);
+extern void reducir_elementos(char mat[][COLUMNS]);
+extern void aumentar_elementos(char mat[][COLUMNS]);
 
 
 	// candy1_init.s //

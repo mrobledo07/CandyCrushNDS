@@ -115,7 +115,8 @@ void ajusta_imagen3(int ibg)
 				generando el fondo 3 y fijando la transparencia entre fondos.*/
 void init_grafA()
 {
-	int bg1A, bg2A, bg3A;
+	int bg2A;
+//	int bg1A, bg3A;
 
 	videoSetMode(MODE_3_2D | DISPLAY_SPR_1D_LAYOUT | DISPLAY_SPR_ACTIVE);
 	
@@ -157,7 +158,8 @@ void init_grafA()
 	// partir de la dirección de memoria correspondiente a los gráficos de
 	// las baldosas para los fondos 1 y 2, cargar los colores de paleta
 	// correspondientes contenidos en la variable BaldosasPal[]
-	decompress(BaldosasTiles, bgGetGfxPtr(bg1A), LZ77Vram);
+	
+	// (tarea 2Ca) decompress(BaldosasTiles, bgGetGfxPtr(bg1A), LZ77Vram);
    decompress(BaldosasTiles, bgGetGfxPtr(bg2A), LZ77Vram);
 	dmaCopy(BaldosasPal, BG_PALETTE, sizeof(BaldosasPal));
 
